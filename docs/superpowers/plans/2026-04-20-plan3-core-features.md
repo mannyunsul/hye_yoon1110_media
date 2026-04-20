@@ -888,17 +888,13 @@ npx cap sync
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import axios from 'axios';
-import { useSettingsStore } from '../stores/settingsStore';
+import { BACKEND_URL } from '../config';
 
 export function useDownload() {
-  const settingsStore = useSettingsStore();
-
   async function fetchMediaInfo(url) {
-    const backendUrl = settingsStore.backendUrl;
-    if (!backendUrl) throw new Error('백엔드 URL이 설정되지 않았습니다.');
-
-    const { data } = await axios.post(`${backendUrl}/api/fetch`, { url }, { timeout: 30000 });
+    const { data } = await axios.post(`${BACKEND_URL}/api/fetch`, { url }, { timeout: 30000 });
     if (!data.success) throw new Error(data.message || '미디어 추출 실패');
+    // BACKEND_URL은 src/config.js에 하드코딩됨
     return data; // { platform, sourceUrl, media: [{url, type, index}] }
   }
 

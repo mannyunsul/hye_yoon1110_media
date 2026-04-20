@@ -29,7 +29,8 @@ Plan 실행 전 아래를 완료해야 한다:
 ```
 frontend/src/
 ├── pages/
-│   └── SettingsPage.vue          # 탭4: 설정 전체 UI
+│   ├── SettingsPage.vue          # 탭4: 설정 전체 UI (OneDrive + 수동 백업 + 가이드 버튼)
+│   └── GuidePage.vue             # 앱 사용 가이드 페이지 (설정에서 진입)
 ├── stores/
 │   └── oneDriveStore.js          # OneDrive 인증 + 동기화 로직
 └── composables/
@@ -482,24 +483,16 @@ git commit -m "feat: add OneDrive auto-sync trigger on media mutations"
       </q-card-section>
     </q-card>
 
-    <!-- 백엔드 URL 카드 -->
+    <!-- 사용 가이드 카드 -->
     <q-card flat bordered class="bg-grey-9 q-mb-md">
       <q-card-section>
-        <div class="text-subtitle2 text-grey-4 q-mb-sm">🌐 백엔드 서버 URL</div>
-        <q-input
-          v-model="backendUrlInput"
-          dark outlined dense
-          placeholder="https://your-app.railway.app"
-          color="pink-5"
-          class="q-mb-sm"
-        >
-          <template #prepend><q-icon name="dns" color="pink-4" /></template>
-        </q-input>
+        <div class="text-subtitle2 text-grey-4 q-mb-sm">📖 사용 가이드</div>
         <q-btn
-          unelevated full-width dense
-          label="저장"
-          color="pink-6"
-          @click="saveBackendUrl"
+          unelevated full-width
+          label="사용 가이드 보기"
+          icon="help_outline"
+          color="grey-7"
+          to="/guide"
         />
       </q-card-section>
     </q-card>
@@ -511,15 +504,12 @@ git commit -m "feat: add OneDrive auto-sync trigger on media mutations"
 import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { useOneDriveStore } from '../stores/oneDriveStore';
-import { useSettingsStore } from '../stores/settingsStore';
 import { useBackup } from '../composables/useBackup';
 import { useMediaStore } from '../stores/mediaStore';
 import { useTagStore } from '../stores/tagStore';
-import { getDB } from '../stores/db';
 
 const $q = useQuasar();
 const oneDriveStore = useOneDriveStore();
-const settingsStore = useSettingsStore();
 const mediaStore = useMediaStore();
 const tagStore = useTagStore();
 const { exportBackup, importBackup } = useBackup();
@@ -528,7 +518,6 @@ const connecting = ref(false);
 const restoring = ref(false);
 const exporting = ref(false);
 const autoSync = ref(true);
-const backendUrlInput = ref(settingsStore.backendUrl);
 const fileInput = ref(null);
 
 function formatDate(iso) {
@@ -621,10 +610,6 @@ async function onImport(event) {
   });
 }
 
-function saveBackendUrl() {
-  settingsStore.saveBackendUrl(backendUrlInput.value);
-  $q.notify({ type: 'positive', message: '백엔드 URL이 저장됐습니다.' });
-}
 </script>
 ```
 
@@ -647,7 +632,136 @@ git commit -m "feat: implement SettingsPage with OneDrive and backup UI"
 
 ---
 
-## Task 5: Android 최종 빌드 및 권한 설정
+## Task 5: 사용 가이드 페이지
+
+**Files:**
+- Create: `frontend/src/pages/GuidePage.vue`
+
+설정 탭의 "사용 가이드 보기" 버튼에서 진입하는 페이지다. 주요 흐름 7가지를 섹션별로 표시한다.
+
+- [ ] **Step 1: GuidePage.vue 작성**
+
+```vue
+<template>
+  <q-page class="bg-grey-10 q-pa-md">
+    <div class="row items-center q-mb-md">
+      <q-btn flat round icon="arrow_back" color="grey-4" @click="$router.back()" />
+      <div class="text-h6 text-grey-3 q-ml-sm">📖 사용 가이드</div>
+    </div>
+
+    <q-expansion-item
+      v-for="item in guides" :key="item.title"
+      :label="item.title"
+      header-class="text-grey-3 bg-grey-9"
+      class="bg-grey-9 q-mb-sm rounded-borders"
+      expand-icon-class="text-grey-4"
+    >
+      <q-card flat class="bg-grey-9">
+        <q-card-section class="q-pt-none">
+          <ol class="text-grey-4 q-pl-md q-ma-none">
+            <li v-for="step in item.steps" :key="step" class="q-mb-xs text-caption">{{ step }}</li>
+          </ol>
+        </q-card-section>
+      </q-card>
+    </q-expansion-item>
+  </q-page>
+</template>
+
+<script setup>
+const guides = [
+  {
+    title: '① SNS 다운로드',
+    steps: [
+      'SNS에서 공유할 URL을 복사한다.',
+      '다운로드 탭을 연다.',
+      'URL 입력 후 "가져오기" 버튼을 누른다.',
+      '다운로드 / 북마크 모드를 선택한다.',
+      '미리보기 확인 후 "저장" 버튼을 누른다.',
+      '관리 목록 탭에서 저장된 항목을 확인한다.',
+    ],
+  },
+  {
+    title: '② 바텀 시트로 미디어 보기',
+    steps: [
+      '관리 목록에서 썸네일을 탭한다.',
+      '화면 하단에서 바텀 시트가 올라온다.',
+      '좌우로 스와이프해 같은 묶음의 미디어를 탐색한다.',
+      '개별 미디어 우측 상단 × 버튼으로 항목 하나만 삭제할 수 있다.',
+      '아래로 스와이프하거나 배경 탭으로 닫는다.',
+    ],
+  },
+  {
+    title: '③ 롱프레스 퀵 메뉴',
+    steps: [
+      '관리 목록에서 썸네일을 길게 누른다.',
+      '퀵 메뉴(출처 열기 / 태그 편집 / 전체 삭제)가 표시된다.',
+      '"출처 열기"를 누르면 원본 SNS URL이 브라우저에서 열린다.',
+      '"태그 편집"을 누르면 태그 입력 다이얼로그가 열린다.',
+      '"전체 삭제"를 누르면 묶음 내 모든 미디어가 삭제된다.',
+    ],
+  },
+  {
+    title: '④ 미관리 → 관리 등록',
+    steps: [
+      '미관리 목록 탭을 연다.',
+      '갤러리에서 미디어 매니저에 등록되지 않은 사진/영상이 표시된다.',
+      '등록할 항목을 탭하면 태그 입력 다이얼로그가 열린다.',
+      '태그 입력 후 저장하면 관리 목록으로 이동한다.',
+    ],
+  },
+  {
+    title: '⑤ 기기 이전 (수동 백업)',
+    steps: [
+      '기존 기기에서 설정 탭 → "백업 내보내기"를 누른다.',
+      '공유 다이얼로그에서 KakaoTalk, 이메일 등으로 JSON 파일을 전송한다.',
+      '새 기기에서 앱을 설치한다.',
+      '설정 탭 → "백업 가져오기"를 누르고 전달받은 JSON 파일을 선택한다.',
+      '복원 완료 후 관리 목록에서 항목을 확인한다.',
+    ],
+  },
+  {
+    title: '⑥ OneDrive 연결',
+    steps: [
+      '설정 탭에서 "Microsoft 계정으로 연결" 버튼을 누른다.',
+      'Microsoft 로그인 팝업에서 계정을 선택하고 권한을 허용한다.',
+      '연결 완료 후 자동 동기화가 활성화된다.',
+      '이후 미디어 추가/삭제 시 OneDrive /MediaManager/metadata.json이 자동으로 업데이트된다.',
+    ],
+  },
+  {
+    title: '⑦ OneDrive 계정 변경',
+    steps: [
+      '설정 탭에서 현재 연결된 계정 아래 "연결 해제" 버튼을 누른다.',
+      '확인 다이얼로그에서 "해제"를 누른다 (로컬 데이터는 유지된다).',
+      '"Microsoft 계정으로 연결" 버튼이 다시 표시된다.',
+      '새 계정으로 로그인하여 재연결한다.',
+    ],
+  },
+];
+</script>
+```
+
+- [ ] **Step 2: 동작 확인**
+
+```bash
+quasar dev
+```
+
+예상 결과:
+- 설정 탭 "사용 가이드 보기" 클릭 → `/guide` 페이지 이동
+- 7개의 아코디언 항목이 표시되고 각각 펼쳐서 단계 확인 가능
+- 뒤로 가기 버튼 클릭 → 설정 탭으로 복귀
+
+- [ ] **Step 3: 커밋**
+
+```bash
+git add frontend/src/pages/GuidePage.vue
+git commit -m "feat: add usage guide page with 7 flows"
+```
+
+---
+
+## Task 6: Android 최종 빌드 및 권한 설정
 
 **Files:**
 - Modify: `frontend/src-capacitor/android/app/src/main/AndroidManifest.xml`
@@ -703,6 +817,6 @@ git commit -m "feat: configure Android permissions for final build"
 - [ ] OneDrive 복원: 백업 파일 기반으로 로컬 DB 복원
 - [ ] 수동 내보내기: JSON 파일 생성 + 공유 다이얼로그 열림
 - [ ] 수동 가져오기: JSON 파일 선택 → DB 복원
-- [ ] 백엔드 URL 저장 → 다운로드 탭에서 즉시 반영
+- [ ] 설정 탭 "사용 가이드 보기" → GuidePage로 이동, 7개 흐름 표시
 - [ ] OneDrive 미연결 시 모든 핵심 기능 정상 동작
 - [ ] Android APK 빌드 성공 + 실기기 전체 기능 동작

@@ -36,7 +36,8 @@ hye_yoon1110/
     │   │   ├── db.js             # SQLite 연결 및 초기화
     │   │   ├── mediaStore.js     # media_groups / media_items CRUD
     │   │   ├── tagStore.js       # tags / group_tags CRUD
-    │   │   └── settingsStore.js  # 백엔드 URL 등 설정값 (localStorage)
+    │   │   └── settingsStore.js  # OneDrive 연결 상태 등 설정값 (localStorage)
+    │   └── config.js             # 백엔드 URL 등 하드코딩 설정값
     │   └── css/
     │       └── app.scss          # 전역 스타일 (다크 테마)
     └── src-capacitor/
@@ -462,9 +463,10 @@ git commit -m "feat: add tagStore with chosung grouping and CRUD"
 
 ---
 
-## Task 5: settingsStore + 하단 탭 레이아웃
+## Task 5: config.js + settingsStore + 하단 탭 레이아웃
 
 **Files:**
+- Create: `frontend/src/config.js`
 - Create: `frontend/src/stores/settingsStore.js`
 - Modify: `frontend/src/layouts/MainLayout.vue`
 - Modify: `frontend/src/router/index.js`
@@ -473,28 +475,30 @@ git commit -m "feat: add tagStore with chosung grouping and CRUD"
 - Modify: `frontend/src/pages/DownloadPage.vue`
 - Modify: `frontend/src/pages/SettingsPage.vue`
 
-- [ ] **Step 1: settingsStore.js 작성**
+- [ ] **Step 1: config.js 작성 (백엔드 URL 하드코딩)**
+
+백엔드 URL은 설정 UI에 노출하지 않고 코드에 고정한다. Railway 배포 후 여기만 수정하면 된다.
+
+```javascript
+// src/config.js
+export const BACKEND_URL = 'https://your-app.railway.app';
+```
+
+> Plan 1 완료 후 Railway에서 발급된 URL로 이 값을 교체한다.
+
+- [ ] **Step 2: settingsStore.js 작성**
 
 ```javascript
 // src/stores/settingsStore.js
 import { defineStore } from 'pinia';
 
+// 백엔드 URL은 config.js에 하드코딩. 이 스토어는 UI 상태만 관리.
 export const useSettingsStore = defineStore('settings', {
-  state: () => ({
-    backendUrl: localStorage.getItem('backend_url') || '',
-  }),
-
-  actions: {
-    saveBackendUrl(url) {
-      const trimmed = url.trim().replace(/\/$/, '');
-      this.backendUrl = trimmed;
-      localStorage.setItem('backend_url', trimmed);
-    },
-  },
+  state: () => ({}),
 });
 ```
 
-- [ ] **Step 2: router/index.js 수정**
+- [ ] **Step 3: router/index.js 수정**
 
 ```javascript
 import { createRouter, createWebHashHistory } from 'vue-router';
@@ -510,6 +514,7 @@ const routes = [
       { path: '/unmanaged', component: () => import('pages/UnmanagedPage.vue') },
       { path: '/download', component: () => import('pages/DownloadPage.vue') },
       { path: '/settings', component: () => import('pages/SettingsPage.vue') },
+      { path: '/guide', component: () => import('pages/GuidePage.vue') },
     ],
   },
 ];
@@ -677,6 +682,6 @@ git commit -m "feat: configure Capacitor Android build"
 
 - [ ] `quasar dev` 실행 시 하단 탭 4개가 보이고 탭 전환 동작
 - [ ] 라우터가 `/manage`, `/unmanaged`, `/download`, `/settings` 경로 처리
-- [ ] `settingsStore.saveBackendUrl()` 호출 시 localStorage에 저장
+- [ ] `src/config.js`의 `BACKEND_URL`이 Railway 배포 URL로 설정됨
 - [ ] Android 에뮬레이터 또는 실기기에서 앱 실행 확인
 - [ ] SQLite 스키마 4개 테이블 정상 생성 (네이티브 환경)
