@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>hye_yoon1110 - 화면 기획서</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1a1a2e; font-family: 'Segoe UI', sans-serif; color: #333; }
+
+  .doc-header {
+    background: linear-gradient(135deg, #e91e8c, #9c27b0);
+    color: white;
+    padding: 40px;
+    text-align: center;
+  }
+  .doc-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .doc-header p { font-size: 14px; opacity: 0.85; }
+
+  .section { padding: 40px; max-width: 1600px; margin: 0 auto; }
+  .section-title {
+    color: #e91e8c;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e91e8c;
+  }
+
+  .screens-grid { display: flex; flex-wrap: wrap; gap: 32px; justify-content: flex-start; }
+
+  .phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .phone-label { color: #ccc; font-size: 13px; font-weight: 600; text-align: center; }
+  .phone {
+    width: 300px; height: 620px;
+    background: #121212;
+    border-radius: 40px;
+    border: 3px solid #444;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .phone::before {
+    content: '';
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    width: 80px; height: 6px;
+    background: #333; border-radius: 3px; z-index: 10;
+  }
+
+  .app { display: flex; flex-direction: column; height: 100%; background: #121212; padding-top: 28px; }
+
+  .topbar {
+    background: #1e1e1e; padding: 12px 16px 10px;
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .topbar-title { color: #fff; font-size: 16px; font-weight: 700; }
+  .topbar-icon { color: #aaa; font-size: 18px; }
+
+  .app-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+  .tabbar { background: #1e1e1e; border-top: 1px solid #333; display: flex; flex-shrink: 0; }
+  .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; gap: 2px; }
+  .tab-item.active .tab-icon { color: #e91e8c; }
+  .tab-item.active .tab-text { color: #e91e8c; }
+  .tab-icon { font-size: 20px; color: #666; }
+  .tab-text { font-size: 9px; color: #666; }
+
+  .search-bar {
+    background: #2a2a2a; margin: 10px 12px;
+    border-radius: 20px; padding: 7px 14px;
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .search-bar span { color: #888; font-size: 13px; }
+
+  .tag-filter {
+    display: flex; gap: 8px; padding: 4px 12px 10px;
+    overflow-x: auto; flex-shrink: 0;
+  }
+  .tag-filter::-webkit-scrollbar { display: none; }
+  .tag-chip {
+    background: #2a2a2a; border: 1px solid #444; border-radius: 16px;
+    padding: 4px 12px; font-size: 11px; color: #bbb; white-space: nowrap; flex-shrink: 0;
+  }
+  .tag-chip.active { background: #e91e8c; border-color: #e91e8c; color: white; }
+  .tag-chip.all-btn { background: #333; border-color: #555; color: #e91e8c; font-weight: 700; }
+
+  .platform-filter { display: flex; gap: 6px; padding: 0 12px 10px; flex-shrink: 0; }
+  .plat-chip {
+    background: #1e1e1e; border: 1px solid #444; border-radius: 10px;
+    padding: 3px 10px; font-size: 10px; color: #999; flex-shrink: 0;
+  }
+  .plat-chip.active { border-color: #9c27b0; color: #ce93d8; background: #1a0a2a; }
+
+  /* 묶음 그리드 아이템 */
+  .gallery-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 2px; flex: 1; overflow: hidden;
+  }
+  .gallery-item {
+    aspect-ratio: 1; background: #2a2a2a;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .gallery-item .media-icon { font-size: 22px; color: #555; }
+  .group-count-badge {
+    position: absolute; bottom: 4px; right: 4px;
+    background: rgba(0,0,0,0.75); border-radius: 4px;
+    padding: 2px 5px; font-size: 8px; color: #fff;
+  }
+  .platform-badge {
+    position: absolute; top: 4px; left: 4px;
+    background: rgba(233,30,140,0.85); border-radius: 3px;
+    padding: 1px 4px; font-size: 7px; color: #fff;
+  }
+  .bookmark-badge {
+    position: absolute; top: 4px; right: 4px;
+    background: rgba(156,39,176,0.85); border-radius: 3px;
+    padding: 1px 4px; font-size: 8px; color: #fff;
+  }
+
+  .divider { height: 1px; background: #2a2a2a; margin: 4px 0; flex-shrink: 0; }
+
+  /* 롱프레스 팝업 */
+  .longpress-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 20;
+  }
+  .longpress-menu {
+    background: #2a2a2a; border-radius: 14px;
+    overflow: hidden; width: 180px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  .longpress-item {
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #333;
+  }
+  .longpress-item:last-child { border-bottom: none; }
+  .longpress-item-icon { font-size: 14px; }
+  .longpress-item-text { color: #ddd; font-size: 12px; }
+  .longpress-item.danger .longpress-item-text { color: #ef5350; }
+
+  /* 바텀 시트 */
+  .bottom-sheet-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex; flex-direction: column;
+    justify-content: flex-end;
+    z-index: 20;
+  }
+  .bottom-sheet {
+    background: #1e1e1e;
+    border-radius: 20px 20px 0 0;
+    padding: 0 0 8px 0;
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .bs-handle {
+    width: 36px; height: 4px; background: #444; border-radius: 2px;
+    margin: 10px auto 8px;
+  }
+  .bs-media-area {
+    background: #151515; height: 160px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .bs-media-icon { font-size: 48px; }
+  .bs-nav {
+    position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 4px; align-items: center;
+  }
+  .bs-dot { width: 5px; height: 5px; background: #555; border-radius: 50%; }
+  .bs-dot.active { background: #e91e8c; width: 12px; border-radius: 3px; }
+  .bs-index {
+    position: absolute; top: 6px; right: 10px;
+    background: rgba(0,0,0,0.6); border-radius: 8px;
+    padding: 2px 7px; font-size: 10px; color: #ddd;
+  }
+  .bs-info { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .bs-platform-row { display: flex; align-items: center; gap: 8px; }
+  .bs-platform-tag {
+    background: #e91e8c22; border: 1px solid #e91e8c55;
+    border-radius: 8px; padding: 2px 8px; font-size: 10px; color: #e91e8c;
+  }
+  .bs-url { color: #e91e8c; font-size: 10px; text-decoration: underline; }
+  .bs-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .bs-tag {
+    background: #2a2a2a; border: 1px solid #555; border-radius: 10px;
+    padding: 2px 8px; font-size: 10px; color: #ccc;
+  }
+  .bs-tag.add { border-color: #e91e8c; color: #e91e8c; }
+  .bs-delete-btn {
+    margin: 4px 14px 6px;
+    background: #2a1a1a; border: 1px solid #5a2a2a;
+    border-radius: 8px; padding: 7px; text-align: center;
+    color: #ef5350; font-size: 11px;
+  }
+
+  /* 미관리 */
+  .unmanaged-header {
+    padding: 8px 12px;
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .unmanaged-count { color: #888; font-size: 11px; }
+  .register-btn {
+    background: #e91e8c; color: white;
+    border-radius: 12px; padding: 4px 12px; font-size: 11px; font-weight: 600;
+  }
+  .unmanaged-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 2px; flex: 1; overflow: hidden;
+  }
+  .unmanaged-item {
+    aspect-ratio: 1; background: #2a2a2a;
+    display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .select-circle {
+    position: absolute; top: 5px; right: 5px;
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.6);
+  }
+  .unmanaged-item.selected .select-circle {
+    background: #e91e8c; border-color: #e91e8c;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 9px;
+  }
+
+  /* 다운로드 */
+  .download-screen {
+    padding: 16px 12px;
+    display: flex; flex-direction: column; gap: 12px; flex: 1;
+  }
+  .mode-toggle {
+    display: flex; background: #1e1e1e; border-radius: 10px;
+    padding: 3px; gap: 3px;
+  }
+  .mode-btn {
+    flex: 1; padding: 6px 8px; border-radius: 8px;
+    font-size: 11px; color: #888; text-align: center;
+  }
+  .mode-btn.active { background: #e91e8c; color: white; font-weight: 700; }
+  .url-input-box {
+    background: #1e1e1e; border: 1px solid #444; border-radius: 12px;
+    padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .url-label { color: #aaa; font-size: 11px; }
+  .url-field {
+    background: #2a2a2a; border-radius: 8px; padding: 8px 10px;
+    color: #555; font-size: 11px;
+  }
+  .fetch-btn {
+    background: linear-gradient(135deg, #e91e8c, #9c27b0);
+    color: white; border-radius: 10px; padding: 10px;
+    text-align: center; font-size: 13px; font-weight: 700;
+  }
+  .share-box {
+    background: #1e1e1e; border: 1px dashed #444; border-radius: 12px;
+    padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .share-text { color: #888; font-size: 11px; text-align: center; }
+
+  /* 다운로드 결과 */
+  .preview-box { background: #1e1e1e; border-radius: 12px; overflow: hidden; }
+  .preview-carousel {
+    background: #151515; height: 110px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .preview-carousel-icon { font-size: 36px; }
+  .preview-swipe-hint { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); font-size: 9px; color: #666; }
+  .preview-info { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .tag-input-row { display: flex; gap: 6px; align-items: center; }
+  .tag-input { background: #2a2a2a; border-radius: 8px; padding: 5px 10px; font-size: 10px; color: #aaa; flex: 1; }
+  .save-btn {
+    background: #e91e8c; color: white; border-radius: 8px;
+    padding: 8px; text-align: center; font-size: 11px; font-weight: 700;
+  }
+
+  /* 설정 */
+  .settings-screen { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow: hidden; }
+  .settings-card { background: #1e1e1e; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .settings-card-title { color: #aaa; font-size: 11px; font-weight: 600; }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; }
+  .settings-label { color: #ddd; font-size: 12px; }
+  .toggle-on {
+    background: #e91e8c; border-radius: 10px; width: 36px; height: 20px;
+    display: flex; align-items: center; justify-content: flex-end; padding: 2px;
+  }
+  .toggle-on::after { content: ''; width: 16px; height: 16px; background: white; border-radius: 50%; }
+  .settings-btn {
+    background: #2a2a2a; border: 1px solid #444; border-radius: 8px;
+    padding: 8px 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .settings-btn-text { color: #bbb; font-size: 11px; }
+  .onedrive-connected {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 10px; background: #0a1f0a; border: 1px solid #2d5a2d; border-radius: 8px;
+  }
+  .onedrive-dot { width: 8px; height: 8px; background: #4caf50; border-radius: 50%; }
+  .onedrive-text { color: #81c784; font-size: 10px; }
+
+  /* 태그 전체 목록 */
+  .tag-list-screen { display: flex; flex: 1; overflow: hidden; position: relative; }
+  .tag-list-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .tag-section-header { padding: 6px 14px 4px; color: #888; font-size: 10px; font-weight: 700; background: #1a1a1a; flex-shrink: 0; }
+  .tag-list-item { padding: 9px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e1e1e; flex-shrink: 0; }
+  .tag-list-name { color: #ddd; font-size: 12px; }
+  .tag-list-count { background: #2a2a2a; border-radius: 8px; padding: 2px 8px; font-size: 10px; color: #888; }
+  .chosung-sidebar { width: 20px; display: flex; flex-direction: column; align-items: center; padding: 8px 0; gap: 3px; }
+  .chosung-item { font-size: 9px; color: #666; cursor: pointer; line-height: 1; }
+  .chosung-item.active { color: #e91e8c; font-weight: 700; }
+
+  /* 흐름 */
+  .flow-section { padding: 40px; max-width: 1600px; margin: 0 auto; }
+  .flow-title { color: #e91e8c; font-size: 20px; font-weight: 700; margin-bottom: 24px; padding-bottom: 10px; border-bottom: 2px solid #e91e8c; }
+  .flow-cards { display: flex; flex-wrap: wrap; gap: 20px; }
+  .flow-card { background: #1e1e2e; border: 1px solid #333; border-radius: 16px; padding: 20px 24px; flex: 1; min-width: 240px; }
+  .flow-card-title { color: #e91e8c; font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+  .flow-steps { display: flex; flex-direction: column; gap: 6px; }
+  .flow-step { display: flex; gap: 10px; align-items: flex-start; }
+  .step-num { width: 20px; height: 20px; background: #e91e8c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: 700; flex-shrink: 0; }
+  .step-text { color: #bbb; font-size: 12px; line-height: 1.5; }
+  .step-arrow { color: #555; font-size: 12px; margin-left: 30px; }
+  .step-or { color: #e91e8c; font-size: 11px; font-weight: 700; margin-left: 30px; }
+
+  /* 컬러 팔레트 */
+  .palette-section { padding: 40px; max-width: 1600px; margin: 0 auto; }
+  .palette-cards { display: flex; gap: 16px; flex-wrap: wrap; }
+  .palette-item { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .palette-color { width: 60px; height: 60px; border-radius: 12px; }
+  .palette-name { color: #ccc; font-size: 11px; text-align: center; }
+  .palette-hex { color: #888; font-size: 10px; }
+
+  .annotation {
+    background: #fffde7; border-left: 3px solid #ffc107;
+    border-radius: 4px; padding: 6px 10px;
+    font-size: 11px; color: #555;
+    margin-top: 8px; max-width: 300px;
+  }
+
+  .doc-footer { text-align: center; padding: 30px; color: #555; font-size: 12px; }
+
+  .interaction-label {
+    color: #e91e8c; font-size: 10px; font-weight: 700;
+    text-align: center; margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <h1>📱 hye_yoon1110 — 화면 기획서</h1>
+  <p>미디어 매니저 앱 · 작성일: 2026-04-20 · v2.0</p>
+</div>
+
+<!-- 섹션 1: 주요 화면 -->
+<div class="section">
+  <div class="section-title">1. 주요 화면</div>
+  <div class="screens-grid">
+
+    <!-- 탭1: 관리 목록 (기본) -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="app">
+          <div class="topbar">
+            <span class="topbar-title">📁 관리 목록</span>
+            <span class="topbar-icon">⋯</span>
+          </div>
+          <div class="app-content">
+            <div class="search-bar">
+              <span>🔍</span><span>검색</span>
+            </div>
+            <div class="tag-filter">
+              <div class="tag-chip active">전체</div>
+              <div class="tag-chip">여행</div>
+              <div class="tag-chip">맛집</div>
+              <div class="tag-chip">제주도</div>
+              <div class="tag-chip all-btn">全</div>
+            </div>
+            <div class="platform-filter">
+              <div class="plat-chip active">전체</div>
+              <div class="plat-chip">📸 IG</div>
+              <div class="plat-chip">✖ X</div>
+              <div class="plat-chip">🎵 TT</div>
+              <div class="plat-chip">▶ YT</div>
+            </div>
+            <div class="gallery-grid">
+              <div class="gallery-item" style="background:#2d1b2d">
+                <span class="media-icon">🌅</span>
+                <span class="platform-badge">IG</span>
+                <span class="group-count-badge">🖼️ 1/5</span>
+              </div>
+              <div class="gallery-item" style="background:#1b2d1b">
+                <span class="media-icon">🏖️</span>
+                <span class="platform-badge" style="background:#1da1f255">X</span>
+                <span class="group-count-badge">▶ 동영상</span>
+              </div>
+              <div class="gallery-item" style="background:#2d2d1b">
+                <span class="media-icon">🍜</span>
+                <span class="platform-badge" style="background:#ff005555">TT</span>
+                <span class="bookmark-badge">🔖</span>
+              </div>
+              <div class="gallery-item" style="background:#1b1b2d">
+                <span class="media-icon">🗻</span>
+                <span class="platform-badge">IG</span>
+                <span class="group-count-badge">🖼️ 1/3</span>
+              </div>
+              <div class="gallery-item" style="background:#2d1b1b">
+                <span class="media-icon">🌸</span>
+                <span class="platform-badge">IG</span>
+              </div>
+              <div class="gallery-item" style="background:#1b2d2d">
+                <span class="media-icon">🎵</span>
+                <span class="platform-badge" style="background:#ff005555">TT</span>
+                <span class="bookmark-badge">🔖</span>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab-item active"><span class="tab-icon">🖼️</span><span class="tab-text">관리</span></div>
+            <div class="tab-item"><span class="tab-icon">📂</span><span class="tab-text">미관리</span></div>
+            <div class="tab-item"><span class="tab-icon">⬇️</span><span class="tab-text">다운로드</span></div>
+            <div class="tab-item"><span class="tab-icon">⚙️</span><span class="tab-text">설정</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">탭1 — 관리 목록</div>
+      <div class="annotation">
+        • 1 URL = 1 묶음 항목<br>
+        • 🖼️ 1/5 = carousel 5장 중 1장<br>
+        • 🔖 = 북마크 (파일 저장 없음)<br>
+        • 탭 → 바텀 시트<br>
+        • 롱프레스 → 빠른 메뉴
+      </div>
+    </div>
+
+    <!-- 롱프레스 팝업 -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="app">
+          <div class="topbar">
+            <span class="topbar-title">📁 관리 목록</span>
+          </div>
+          <div class="app-content" style="position:relative">
+            <div class="search-bar"><span>🔍</span><span>검색</span></div>
+            <div class="tag-filter">
+              <div class="tag-chip active">전체</div>
+              <div class="tag-chip">여행</div>
+              <div class="tag-chip all-btn">全</div>
+            </div>
+            <div class="gallery-grid" style="opacity:0.4">
+              <div class="gallery-item" style="background:#2d1b2d"><span class="media-icon">🌅</span></div>
+              <div class="gallery-item" style="background:#1b2d1b"><span class="media-icon">🏖️</span></div>
+              <div class="gallery-item" style="background:#2d2d1b"><span class="media-icon">🍜</span></div>
+              <div class="gallery-item" style="background:#1b1b2d"><span class="media-icon">🗻</span></div>
+              <div class="gallery-item" style="background:#2d1b1b"><span class="media-icon">🌸</span></div>
+              <div class="gallery-item" style="background:#1b2d2d"><span class="media-icon">🎵</span></div>
+            </div>
+            <div class="longpress-overlay">
+              <div class="longpress-menu">
+                <div class="longpress-item">
+                  <span class="longpress-item-icon">↗️</span>
+                  <span class="longpress-item-text">출처 열기</span>
+                </div>
+                <div class="longpress-item">
+                  <span class="longpress-item-icon">🏷️</span>
+                  <span class="longpress-item-text">태그 편집</span>
+                </div>
+                <div class="longpress-item danger">
+                  <span class="longpress-item-icon">🗑️</span>
+                  <span class="longpress-item-text">전체 삭제</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab-item active"><span class="tab-icon">🖼️</span><span class="tab-text">관리</span></div>
+            <div class="tab-item"><span class="tab-icon">📂</span><span class="tab-text">미관리</span></div>
+            <div class="tab-item"><span class="tab-icon">⬇️</span><span class="tab-text">다운로드</span></div>
+            <div class="tab-item"><span class="tab-icon">⚙️</span><span class="tab-text">설정</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">롱프레스 빠른 메뉴</div>
+      <div class="annotation">
+        • 항목을 길게 누르면 팝업<br>
+        • 출처 열기: SNS 앱 바로 이동<br>
+        • 태그 편집: 태그 수정 다이얼로그<br>
+        • 전체 삭제: 묶음 전체 삭제
+      </div>
+    </div>
+
+    <!-- 바텀 시트 (carousel) -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="app">
+          <div class="topbar">
+            <span class="topbar-title">📁 관리 목록</span>
+          </div>
+          <div class="app-content" style="position:relative">
+            <div class="gallery-grid" style="opacity:0.3">
+              <div class="gallery-item" style="background:#2d1b2d"><span class="media-icon">🌅</span></div>
+              <div class="gallery-item" style="background:#1b2d1b"><span class="media-icon">🏖️</span></div>
+              <div class="gallery-item" style="background:#2d2d1b"><span class="media-icon">🍜</span></div>
+              <div class="gallery-item" style="background:#1b1b2d"><span class="media-icon">🗻</span></div>
+              <div class="gallery-item" style="background:#2d1b1b"><span class="media-icon">🌸</span></div>
+              <div class="gallery-item" style="background:#1b2d2d"><span class="media-icon">🎵</span></div>
+            </div>
+            <div class="bottom-sheet-overlay">
+              <div class="bottom-sheet">
+                <div class="bs-handle"></div>
+                <div class="bs-media-area">
+                  <span class="bs-media-icon">🌅</span>
+                  <span class="bs-index">2 / 5</span>
+                  <div class="bs-nav">
+                    <div class="bs-dot"></div>
+                    <div class="bs-dot active"></div>
+                    <div class="bs-dot"></div>
+                    <div class="bs-dot"></div>
+                    <div class="bs-dot"></div>
+                  </div>
+                </div>
+                <div class="bs-info">
+                  <div class="bs-platform-row">
+                    <span class="bs-platform-tag">📸 Instagram</span>
+                    <span class="bs-url">instagram.com/p/ABC... ↗</span>
+                  </div>
+                  <div class="bs-tags">
+                    <span class="bs-tag">여행</span>
+                    <span class="bs-tag">제주도</span>
+                    <span class="bs-tag">감성</span>
+                    <span class="bs-tag add">+ 태그</span>
+                  </div>
+                </div>
+                <div class="bs-delete-btn">🗑️ 이 사진만 삭제</div>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab-item active"><span class="tab-icon">🖼️</span><span class="tab-text">관리</span></div>
+            <div class="tab-item"><span class="tab-icon">📂</span><span class="tab-text">미관리</span></div>
+            <div class="tab-item"><span class="tab-icon">⬇️</span><span class="tab-text">다운로드</span></div>
+            <div class="tab-item"><span class="tab-icon">⚙️</span><span class="tab-text">설정</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">바텀 시트 (탭 시 오픈)</div>
+      <div class="annotation">
+        • 페이지 이동 없이 아래서 슬라이드 업<br>
+        • 좌우 스와이프로 carousel 탐색<br>
+        • 출처 URL 탭 → SNS 앱 오픈<br>
+        • 이 사진만 삭제 가능<br>
+        • 바깥 탭 / 아래 스와이프 → 닫힘
+      </div>
+    </div>
+
+    <!-- 태그 전체 목록 -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="app">
+          <div class="topbar">
+            <span class="topbar-title">← 태그 전체 목록</span>
+          </div>
+          <div class="app-content">
+            <div class="search-bar"><span>🔍</span><span>태그 검색</span></div>
+            <div class="tag-list-screen">
+              <div class="tag-list-content">
+                <div class="tag-section-header">ㄱ</div>
+                <div class="tag-list-item"><span class="tag-list-name">감성</span><span class="tag-list-count">8</span></div>
+                <div class="tag-list-item"><span class="tag-list-name">강릉</span><span class="tag-list-count">3</span></div>
+                <div class="tag-section-header">ㄴ</div>
+                <div class="tag-list-item"><span class="tag-list-name">남해</span><span class="tag-list-count">5</span></div>
+                <div class="tag-section-header">ㄷ</div>
+                <div class="tag-list-item"><span class="tag-list-name">단풍</span><span class="tag-list-count">2</span></div>
+                <div class="tag-list-item"><span class="tag-list-name">대구</span><span class="tag-list-count">7</span></div>
+                <div class="tag-section-header">ㅁ</div>
+                <div class="tag-list-item"><span class="tag-list-name">맛집</span><span class="tag-list-count">12</span></div>
+                <div class="tag-list-item"><span class="tag-list-name">먹방</span><span class="tag-list-count">4</span></div>
+                <div class="tag-section-header">ㅂ</div>
+                <div class="tag-list-item"><span class="tag-list-name">부산</span><span class="tag-list-count">9</span></div>
+              </div>
+              <div class="chosung-sidebar">
+                <span class="chosung-item active">ㄱ</span>
+                <span class="chosung-item">ㄴ</span>
+                <span class="chosung-item">ㄷ</span>
+                <span class="chosung-item">ㄹ</span>
+                <span class="chosung-item">ㅁ</span>
+                <span class="chosung-item">ㅂ</span>
+                <span class="chosung-item">ㅅ</span>
+                <span class="chosung-item">ㅇ</span>
+                <span class="chosung-item">ㅈ</span>
+                <span class="chosung-item">ㅊ</span>
+                <span class="chosung-item">ㅋ</span>
+                <span class="chosung-item">ㅌ</span>
+                <span class="chosung-item">ㅍ</span>
+                <span class="chosung-item">ㅎ</span>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab-item active"><span class="tab-icon">🖼️</span><span class="tab-text">관리</span></div>
+            <div class="tab-item"><span class="tab-icon">📂</span><span class="tab-text">미관리</span></div>
+            <div class="tab-item"><span class="tab-icon">⬇️</span><span class="tab-text">다운로드</span></div>
+            <div class="tab-item"><span class="tab-icon">⚙️</span><span class="tab-text">설정</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">태그 전체 목록 (全 버튼)</div>
+      <div class="annotation">
+        • 초성별 섹션 구분<br>
+        • 오른쪽 초성 바로가기<br>
+        • 태그별 미디어 수 표시<br>
+        ※ UI 세부 디자인은 개발 중 확정
+      </div>
+    </div>
+
+    <!-- 탭2: 미관리 목록 -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="app">
+          <div class="topbar">
+            <span class="topbar-title">📂 미관리 목록</span>
+            <span class="topbar-icon" style="color:#e91e8c;font-size:12px">2개 선택됨</span>
+          </div>
+          <div class="app-content">
+            <div class="unmanaged-header">
+              <span class="unmanaged-count">갤러리 미등록 34개</span>
+              <span class="register-btn">태그 등록</span>
+            </div>
+            <div class="divider"></div>
+            <div class="unmanaged-grid">
+              <div class="unmanaged-item selected" style="background:#2a2520"><span style="font-size:22px">📷</span><div class="select-circle">✓</div></div>
+              <div class="unmanaged-item" style="background:#202520"><span style="font-size:22px">🌄</span><div class="select-circle"></div></div>
+              <div class="unmanaged-item selected" style="background:#25202a"><span style="font-size:22px">🎬</span><div class="select-circle">✓</div></div>
+              <div class="unmanaged-item" style="background:#202a25"><span style="font-size:22px">🏠</span><div class="select-circle"></div></div>
+              <div class="unmanaged-item" style="background:#2a2020"><span style="font-size:22px">🐶</span><div class="select-circle"></div></div>
+              <div class="unmanaged-item" style="background:#202025"><span style="font-size:22px">🌺</span><div class="select-circle"></div></div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab-item"><span class="tab-icon">🖼️</span><span class="tab-text">관리</span></div>
+            <div class="tab-item active"><span class="tab-icon">📂</span><span class="tab-text">미관리</span></div>
+            <div class="tab-item"><span class="tab-icon">⬇️</span><span class="tab-text">다운로드</span></div>
+            <div class="tab-item"><span class="tab-icon">⚙️</span><span class="tab-text">설정</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">탭2 — 미관리 목록</div>
+      <div class="annotation">
+        • 갤러리에 있지만 미등록 미디어<br>
+        • 다중 선택 후 태그 등록<br>
+        • 등록하면 관리 목록으로 이동
+      </div>
+    </div>
+
+    <!-- 탭3: 다운로드 (입력) -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="app">
+          <div class="topbar"><span class="topbar-title">⬇️ 다운로드</span></div>
+          <div class="app-content">
+            <div class="download-screen">
+              <div class="mode-toggle">
+                <div class="mode-btn active">⬇️ 다운로드</div>
+                <div class="mode-btn">🔖 북마크</div>
+              </div>
+              <div class="url-input-box">
+                <span class="url-label">SNS URL 입력</span>
+                <div class="url-field">https://instagram.com/p/...</div>
+                <div class="fetch-btn">미디어 가져오기</div>
+              </div>
+              <div style="text-align:center;color:#555;font-size:11px">또는</div>
+              <div class="share-box">
+                <span style="font-size:28px">📤</span>
+                <span class="share-text">다른 앱에서 공유하기로<br>이 앱을 선택하면 자동으로 열립니다</span>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab-item"><span class="tab-icon">🖼️</span><span class="tab-text">관리</span></div>
+            <div class="tab-item"><span class="tab-icon">📂</span><span class="tab-text">미관리</span></div>
+            <div class="tab-item active"><span class="tab-icon">⬇️</span><span class="tab-text">다운로드</span></div>
+            <div class="tab-item"><span class="tab-icon">⚙️</span><span class="tab-text">설정</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">탭3 — 다운로드 (URL 입력)</div>
+      <div class="annotation">
+        • 다운로드 / 북마크 모드 선택<br>
+        • URL 직접 입력 or 공유받기<br>
+        • yt-dlp로 모든 SNS 지원
+      </div>
+    </div>
+
+    <!-- 탭3: 다운로드 결과 -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="app">
+          <div class="topbar"><span class="topbar-title">⬇️ 다운로드</span></div>
+          <div class="app-content">
+            <div class="download-screen">
+              <div class="mode-toggle">
+                <div class="mode-btn active">⬇️ 다운로드</div>
+                <div class="mode-btn">🔖 북마크</div>
+              </div>
+              <div class="preview-box">
+                <div class="preview-carousel">
+                  <span class="preview-carousel-icon">🌅 🌄 🏖️</span>
+                  <span class="preview-swipe-hint">← 스와이프로 5장 모두 확인 →</span>
+                </div>
+                <div class="preview-info">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <span style="background:#e91e8c22;border:1px solid #e91e8c55;border-radius:8px;padding:2px 8px;font-size:10px;color:#e91e8c">📸 Instagram</span>
+                    <span style="color:#666;font-size:10px">이미지 5장</span>
+                  </div>
+                  <div class="tag-input-row">
+                    <span style="color:#888;font-size:10px">태그:</span>
+                    <div class="tag-input">여행, 제주도...</div>
+                  </div>
+                  <div class="tag-input-row">
+                    <span style="color:#888;font-size:10px">URL:</span>
+                    <div class="tag-input" style="color:#e91e8c;font-size:9px">instagram.com/p/ABC ✓ 자동</div>
+                  </div>
+                  <div class="save-btn">📥 갤러리 저장 + 등록</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab-item"><span class="tab-icon">🖼️</span><span class="tab-text">관리</span></div>
+            <div class="tab-item"><span class="tab-icon">📂</span><span class="tab-text">미관리</span></div>
+            <div class="tab-item active"><span class="tab-icon">⬇️</span><span class="tab-text">다운로드</span></div>
+            <div class="tab-item"><span class="tab-icon">⚙️</span><span class="tab-text">설정</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">탭3 — 다운로드 결과</div>
+      <div class="annotation">
+        • carousel 미리보기 (스와이프)<br>
+        • 플랫폼 자동 감지<br>
+        • 출처 URL 자동 입력<br>
+        • 관리 목록에 1개 묶음으로 등록
+      </div>
+    </div>
+
+    <!-- 탭4: 설정 -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="app">
+          <div class="topbar"><span class="topbar-title">⚙️ 설정</span></div>
+          <div class="app-content">
+            <div class="settings-screen">
+              <div class="settings-card">
+                <div class="settings-card-title">☁️ OneDrive 연동</div>
+                <div class="onedrive-connected">
+                  <div class="onedrive-dot"></div>
+                  <span class="onedrive-text">연결됨 · hye_yoon@outlook.com</span>
+                </div>
+                <div class="settings-row">
+                  <span class="settings-label" style="font-size:11px">자동 동기화</span>
+                  <div class="toggle-on"></div>
+                </div>
+              </div>
+              <div class="settings-card">
+                <div class="settings-card-title">💾 백업</div>
+                <div class="settings-btn"><span>📤</span><span class="settings-btn-text">백업 내보내기 (JSON)</span></div>
+                <div class="settings-btn"><span>📥</span><span class="settings-btn-text">백업 가져오기</span></div>
+              </div>
+              <div class="settings-card">
+                <div class="settings-card-title">🌐 백엔드 서버</div>
+                <div class="url-field" style="font-size:10px;color:#888;background:#2a2a2a;padding:6px 10px;border-radius:6px">https://xxx.railway.app</div>
+                <div class="save-btn" style="padding:7px;margin-top:2px">저장</div>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab-item"><span class="tab-icon">🖼️</span><span class="tab-text">관리</span></div>
+            <div class="tab-item"><span class="tab-icon">📂</span><span class="tab-text">미관리</span></div>
+            <div class="tab-item"><span class="tab-icon">⬇️</span><span class="tab-text">다운로드</span></div>
+            <div class="tab-item active"><span class="tab-icon">⚙️</span><span class="tab-text">설정</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">탭4 — 설정</div>
+      <div class="annotation">
+        • OneDrive 연결 상태 + 자동 동기화 토글<br>
+        • 수동 백업 내보내기/가져오기<br>
+        • 백엔드 URL 설정
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 섹션 2: 주요 흐름 -->
+<div class="flow-section">
+  <div class="flow-title">2. 주요 흐름</div>
+  <div class="flow-cards">
+
+    <div class="flow-card">
+      <div class="flow-card-title">① SNS 다운로드</div>
+      <div class="flow-steps">
+        <div class="flow-step"><div class="step-num">1</div><span class="step-text">URL 입력 또는 공유받기</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">2</div><span class="step-text">모드 선택: 다운로드 / 북마크</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">3</div><span class="step-text">carousel 미리보기 + 태그 입력</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">4</div><span class="step-text">갤러리 저장 + SQLite 등록</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">5</div><span class="step-text">관리 목록에 1개 묶음으로 표시</span></div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-title">② 바텀 시트 조작</div>
+      <div class="flow-steps">
+        <div class="flow-step"><div class="step-num">1</div><span class="step-text">목록 항목 탭 → 바텀 시트 오픈</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">2</div><span class="step-text">좌우 스와이프로 carousel 탐색</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">3</div><span class="step-text">출처 URL 탭 → SNS 앱 바로 이동</span></div>
+        <div class="step-or">또는</div>
+        <div class="flow-step"><div class="step-num">4</div><span class="step-text">이 사진만 삭제 → 개수 갱신</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">5</div><span class="step-text">바깥 탭 / 아래 스와이프 → 닫힘</span></div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-title">③ 롱프레스 빠른 메뉴</div>
+      <div class="flow-steps">
+        <div class="flow-step"><div class="step-num">1</div><span class="step-text">목록 항목 길게 누르기</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">2</div><span class="step-text">팝업 메뉴 오픈</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">A</div><span class="step-text">출처 열기 → SNS 앱</span></div>
+        <div class="step-or">또는</div>
+        <div class="flow-step"><div class="step-num">B</div><span class="step-text">태그 편집 → 다이얼로그</span></div>
+        <div class="step-or">또는</div>
+        <div class="flow-step"><div class="step-num">C</div><span class="step-text">전체 삭제 → 묶음 제거</span></div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-title">④ 미관리 → 관리 등록</div>
+      <div class="flow-steps">
+        <div class="flow-step"><div class="step-num">1</div><span class="step-text">미관리 탭에서 사진 선택 (다중)</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">2</div><span class="step-text">태그 입력 (출처 URL 선택 입력)</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">3</div><span class="step-text">저장 → 관리 목록으로 이동</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">4</div><span class="step-text">OneDrive 자동 동기화</span></div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-title">⑤ 기기 이전</div>
+      <div class="flow-steps">
+        <div class="flow-step"><div class="step-num">A</div><span class="step-text">[OneDrive] 새 폰 설치 → 로그인 → 자동 복원</span></div>
+        <div class="step-or">또는</div>
+        <div class="flow-step"><div class="step-num">1</div><span class="step-text">[수동] 설정 → 백업 내보내기</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">2</div><span class="step-text">카톡/이메일로 JSON 전송</span></div>
+        <div class="step-arrow">↓</div>
+        <div class="flow-step"><div class="step-num">3</div><span class="step-text">새 폰에서 백업 가져오기</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 섹션 3: 컬러 팔레트 -->
+<div class="palette-section">
+  <div class="flow-title">3. 컬러 팔레트 (안)</div>
+  <div class="palette-cards">
+    <div class="palette-item"><div class="palette-color" style="background:#e91e8c"></div><div class="palette-name">Primary</div><div class="palette-hex">#e91e8c</div></div>
+    <div class="palette-item"><div class="palette-color" style="background:#9c27b0"></div><div class="palette-name">Secondary</div><div class="palette-hex">#9c27b0</div></div>
+    <div class="palette-item"><div class="palette-color" style="background:#121212"></div><div class="palette-name">Background</div><div class="palette-hex">#121212</div></div>
+    <div class="palette-item"><div class="palette-color" style="background:#1e1e1e;border:1px solid #333"></div><div class="palette-name">Surface</div><div class="palette-hex">#1e1e1e</div></div>
+    <div class="palette-item"><div class="palette-color" style="background:#ffffff"></div><div class="palette-name">Text</div><div class="palette-hex">#ffffff</div></div>
+    <div class="palette-item"><div class="palette-color" style="background:#888888"></div><div class="palette-name">Muted</div><div class="palette-hex">#888888</div></div>
+  </div>
+  <p style="color:#666;font-size:12px;margin-top:16px">* 컬러는 개발 중 변경 가능합니다.</p>
+</div>
+
+<div class="doc-footer">hye_yoon1110 미디어 매니저 · 화면 기획서 v2.0 · 2026-04-20</div>
+
+</body>
+</html>
