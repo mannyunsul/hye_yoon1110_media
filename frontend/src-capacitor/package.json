@@ -1,0 +1,14 @@
+{
+  "name": "hye_yoon_media",
+  "version": "0.0.1",
+  "description": "Sass with SCSS syntax",
+  "author": "miyeon.kang <miyeon.kang1@hd.com>",
+  "private": true,
+  "dependencies": {
+    "@capacitor-community/sqlite": "^8.1.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/filesystem": "^8.1.2"
+  }
+}

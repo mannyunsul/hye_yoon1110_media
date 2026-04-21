@@ -1,0 +1,16 @@
+{
+  "appId": "com.hyeyoon.mediamanager",
+  "appName": "Media Manager",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "CapacitorSQLite": {
+      "iosDatabaseLocation": "Library/CapacitorDatabase",
+      "iosIsEncryption": false,
+      "iosKeychainPrefix": "hyeyoon",
+      "androidIsEncryption": false
+    }
+  }
+}
