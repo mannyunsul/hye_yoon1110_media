@@ -64,41 +64,58 @@ public class WebAuthPlugin extends Plugin {
             CookieManager.getInstance().setAcceptCookie(true);
             CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
 
+            final boolean[] resolved = {false};
+
             webView.setWebViewClient(new WebViewClient() {
                 @Override
                 public void onPageFinished(WebView view, String url) {
                     super.onPageFinished(view, url);
-                    if (url == null) return;
+                    if (url == null || resolved[0]) return;
 
                     boolean loginSuccess = false;
                     String cookieDomain;
 
                     if (finalPlatform.equals("instagram")) {
-                        loginSuccess = url.contains("instagram.com") &&
-                                      !url.contains("accounts/login") &&
-                                      !url.contains("accounts/signup") &&
-                                      !url.contains("challenge");
+                        boolean onIG = url.contains("instagram.com");
+                        boolean onLoginPage = url.contains("accounts/login") ||
+                                             url.contains("accounts/signup") ||
+                                             url.contains("challenge");
+                        loginSuccess = onIG && !onLoginPage;
                         cookieDomain = "https://www.instagram.com";
                     } else {
-                        loginSuccess = url.contains("x.com/home") ||
-                                      url.contains("twitter.com/home");
+                        boolean onX = url.contains("x.com") || url.contains("twitter.com");
+                        boolean onLoginFlow = url.contains("i/flow/login") ||
+                                             url.contains("i/flow/signup") ||
+                                             url.contains("i/flow/");
+                        loginSuccess = onX && !onLoginFlow;
                         cookieDomain = "https://x.com";
                     }
 
                     if (loginSuccess) {
+                        resolved[0] = true;
                         CookieManager.getInstance().flush();
+
                         String cookies = CookieManager.getInstance().getCookie(cookieDomain);
+                        // X는 twitter.com 쿠키도 함께 수집
+                        if (finalPlatform.equals("x")) {
+                            String twCookies = CookieManager.getInstance().getCookie("https://twitter.com");
+                            if (twCookies != null && !twCookies.isEmpty()) {
+                                cookies = (cookies != null ? cookies + "; " : "") + twCookies;
+                            }
+                        }
+
+                        final String finalCookies = cookies != null ? cookies : "";
                         dialog.dismiss();
 
                         JSObject result = new JSObject();
-                        result.put("cookies", cookies != null ? cookies : "");
+                        result.put("cookies", finalCookies);
                         call.resolve(result);
                     }
                 }
             });
 
             dialog.setOnDismissListener(d -> {
-                if (!call.isResolved()) {
+                if (!resolved[0]) {
                     call.reject("로그인이 취소되었습니다.");
                 }
             });
