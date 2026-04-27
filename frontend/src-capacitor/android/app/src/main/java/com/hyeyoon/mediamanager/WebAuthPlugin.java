@@ -1,19 +1,15 @@
 package com.hyeyoon.mediamanager;
 
-import android.app.Dialog;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.webkit.CookieManager;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.app.Activity;
+import android.content.Intent;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.plugin.util.ActivityResultData;
 
 @CapacitorPlugin(name = "WebAuth")
 public class WebAuthPlugin extends Plugin {
@@ -25,113 +21,27 @@ public class WebAuthPlugin extends Plugin {
             call.reject("platform is required");
             return;
         }
-
-        String loginUrl;
-        switch (platform) {
-            case "instagram":
-                loginUrl = "https://www.instagram.com/accounts/login/";
-                break;
-            case "x":
-                loginUrl = "https://x.com/i/flow/login";
-                break;
-            default:
-                call.reject("unsupported platform: " + platform);
-                return;
+        if (!platform.equals("instagram") && !platform.equals("x")) {
+            call.reject("unsupported platform: " + platform);
+            return;
         }
 
-        final String finalPlatform = platform;
+        Intent intent = new Intent(getContext(), WebAuthActivity.class);
+        intent.putExtra("platform", platform);
+        startActivityForResult(call, intent, "loginResult");
+    }
 
-        getActivity().runOnUiThread(() -> {
-            Dialog dialog = new Dialog(getActivity(), android.R.style.Theme_Black_NoTitleBar_Fullscreen);
-            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+    @ActivityCallback
+    private void loginResult(PluginCall call, ActivityResultData result) {
+        if (call == null) return;
 
-            WebView webView = new WebView(getActivity());
-            webView.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            ));
-
-            WebSettings settings = webView.getSettings();
-            settings.setJavaScriptEnabled(true);
-            settings.setDomStorageEnabled(true);
-            settings.setLoadWithOverviewMode(true);
-            settings.setUseWideViewPort(true);
-            settings.setUserAgentString(
-                "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 " +
-                "(KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36"
-            );
-
-            CookieManager.getInstance().setAcceptCookie(true);
-            CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
-
-            final boolean[] resolved = {false};
-
-            webView.setWebViewClient(new WebViewClient() {
-                @Override
-                public void onPageFinished(WebView view, String url) {
-                    super.onPageFinished(view, url);
-                    if (url == null || resolved[0]) return;
-
-                    boolean loginSuccess = false;
-                    String cookieDomain;
-
-                    if (finalPlatform.equals("instagram")) {
-                        boolean onIG = url.contains("instagram.com");
-                        boolean onLoginPage = url.contains("accounts/login") ||
-                                             url.contains("accounts/signup") ||
-                                             url.contains("challenge");
-                        loginSuccess = onIG && !onLoginPage;
-                        cookieDomain = "https://www.instagram.com";
-                    } else {
-                        boolean onX = url.contains("x.com") || url.contains("twitter.com");
-                        boolean onLoginFlow = url.contains("i/flow/login") ||
-                                             url.contains("i/flow/signup") ||
-                                             url.contains("i/flow/");
-                        loginSuccess = onX && !onLoginFlow;
-                        cookieDomain = "https://x.com";
-                    }
-
-                    if (loginSuccess) {
-                        resolved[0] = true;
-                        CookieManager.getInstance().flush();
-
-                        String cookies = CookieManager.getInstance().getCookie(cookieDomain);
-                        // X는 twitter.com 쿠키도 함께 수집
-                        if (finalPlatform.equals("x")) {
-                            String twCookies = CookieManager.getInstance().getCookie("https://twitter.com");
-                            if (twCookies != null && !twCookies.isEmpty()) {
-                                cookies = (cookies != null ? cookies + "; " : "") + twCookies;
-                            }
-                        }
-
-                        final String finalCookies = cookies != null ? cookies : "";
-                        dialog.dismiss();
-
-                        JSObject result = new JSObject();
-                        result.put("cookies", finalCookies);
-                        call.resolve(result);
-                    }
-                }
-            });
-
-            dialog.setOnDismissListener(d -> {
-                if (!resolved[0]) {
-                    call.reject("로그인이 취소되었습니다.");
-                }
-            });
-
-            dialog.setContentView(webView);
-
-            Window window = dialog.getWindow();
-            if (window != null) {
-                window.setLayout(
-                    WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.MATCH_PARENT
-                );
-            }
-
-            dialog.show();
-            webView.loadUrl(loginUrl);
-        });
+        if (result.getResultCode() == Activity.RESULT_OK) {
+            String cookies = result.getData().getStringExtra("cookies");
+            JSObject ret = new JSObject();
+            ret.put("cookies", cookies != null ? cookies : "");
+            call.resolve(ret);
+        } else {
+            call.reject("로그인이 취소되었습니다.");
+        }
     }
 }
