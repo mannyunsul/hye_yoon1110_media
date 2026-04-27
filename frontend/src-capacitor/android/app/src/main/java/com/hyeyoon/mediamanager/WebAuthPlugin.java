@@ -9,7 +9,7 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
-import com.getcapacitor.plugin.util.ActivityResultData;
+import androidx.activity.result.ActivityResult;
 
 @CapacitorPlugin(name = "WebAuth")
 public class WebAuthPlugin extends Plugin {
@@ -32,10 +32,10 @@ public class WebAuthPlugin extends Plugin {
     }
 
     @ActivityCallback
-    private void loginResult(PluginCall call, ActivityResultData result) {
+    private void loginResult(PluginCall call, ActivityResult result) {
         if (call == null) return;
 
-        if (result.getResultCode() == Activity.RESULT_OK) {
+        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
             String cookies = result.getData().getStringExtra("cookies");
             JSObject ret = new JSObject();
             ret.put("cookies", cookies != null ? cookies : "");
