@@ -1,7 +1,9 @@
 package com.hyeyoon.mediamanager;
 
 import android.app.Dialog;
+import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -44,14 +46,22 @@ public class WebAuthPlugin extends Plugin {
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
             WebView webView = new WebView(getActivity());
+            webView.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            ));
+
             WebSettings settings = webView.getSettings();
             settings.setJavaScriptEnabled(true);
             settings.setDomStorageEnabled(true);
+            settings.setLoadWithOverviewMode(true);
+            settings.setUseWideViewPort(true);
             settings.setUserAgentString(
                 "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 " +
                 "(KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36"
             );
 
+            CookieManager.getInstance().setAcceptCookie(true);
             CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
 
             webView.setWebViewClient(new WebViewClient() {
@@ -66,7 +76,8 @@ public class WebAuthPlugin extends Plugin {
                     if (finalPlatform.equals("instagram")) {
                         loginSuccess = url.contains("instagram.com") &&
                                       !url.contains("accounts/login") &&
-                                      !url.contains("accounts/signup");
+                                      !url.contains("accounts/signup") &&
+                                      !url.contains("challenge");
                         cookieDomain = "https://www.instagram.com";
                     } else {
                         loginSuccess = url.contains("x.com/home") ||
@@ -86,7 +97,22 @@ public class WebAuthPlugin extends Plugin {
                 }
             });
 
+            dialog.setOnDismissListener(d -> {
+                if (!call.isResolved()) {
+                    call.reject("로그인이 취소되었습니다.");
+                }
+            });
+
             dialog.setContentView(webView);
+
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setLayout(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT
+                );
+            }
+
             dialog.show();
             webView.loadUrl(loginUrl);
         });
