@@ -2,12 +2,28 @@ import { Filesystem, Directory } from '@capacitor/filesystem'
 import { Capacitor } from '@capacitor/core'
 import axios from 'axios'
 import { BACKEND_URL } from '../config'
+import { useWebAuth } from './useWebAuth'
 
 export function useDownload() {
+  const { getCookies } = useWebAuth()
+
+  function detectPlatform(url) {
+    if (url.includes('instagram.com')) return 'instagram'
+    if (url.includes('x.com') || url.includes('twitter.com')) return 'x'
+    return 'other'
+  }
+
   async function fetchMediaInfo(url) {
-    const { data } = await axios.post(`${BACKEND_URL}/api/fetch`, { url }, { timeout: 30000 })
+    const platform = detectPlatform(url)
+    const cookies = await getCookies(platform)
+
+    const { data } = await axios.post(
+      `${BACKEND_URL}/api/fetch`,
+      { url, cookies },
+      { timeout: 30000 }
+    )
     if (!data.success) throw new Error(data.message || '미디어 추출 실패')
-    return data // { platform, sourceUrl, media: [{url, type, index}] }
+    return data
   }
 
   async function downloadFile(remoteUrl, filename) {

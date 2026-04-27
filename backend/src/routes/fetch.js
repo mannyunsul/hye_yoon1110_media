@@ -5,7 +5,7 @@ const { detectPlatform } = require('../lib/platform');
 const router = express.Router();
 
 router.post('/', async (req, res) => {
-  const { url } = req.body;
+  const { url, cookies } = req.body;
 
   if (!url || typeof url !== 'string' || !url.startsWith('http')) {
     return res.status(400).json({
@@ -17,7 +17,7 @@ router.post('/', async (req, res) => {
   const platform = detectPlatform(url);
 
   try {
-    const media = await extractMedia(url);
+    const media = await extractMedia(url, cookies || null);
 
     return res.json({
       success: true,
