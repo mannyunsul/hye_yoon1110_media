@@ -1,2 +1,3 @@
-// Railway 배포 후 아래 URL을 실제 배포 URL로 교체하세요
-export const BACKEND_URL = 'https://your-app.railway.app';
+// .env.development → http://localhost:3000 (quasar dev)
+// .env.production  → Railway URL (quasar build)
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL

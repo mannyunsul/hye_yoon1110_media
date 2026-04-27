@@ -1,6 +1,6 @@
-import { defineStore } from 'pinia';
-import { getDB } from './db';
-import { v4 as uuidv4 } from 'uuid';
+import { defineStore } from 'pinia'
+import { getDB } from './db'
+import { v4 as uuidv4 } from 'uuid'
 
 export const useMediaStore = defineStore('media', {
   state: () => ({
@@ -10,36 +10,36 @@ export const useMediaStore = defineStore('media', {
 
   actions: {
     async loadGroups() {
-      const db = getDB();
-      if (!db) return;
-      this.loading = true;
+      const db = getDB()
+      if (!db) return
+      this.loading = true
       const result = await db.query(
         'SELECT * FROM media_groups ORDER BY registeredAt DESC'
-      );
-      this.groups = result.values || [];
-      this.loading = false;
+      )
+      this.groups = result.values || []
+      this.loading = false
     },
 
     async addGroup({ sourceUrl, platform, mode, thumbnailPath, items, tagIds }) {
-      const db = getDB();
-      if (!db) return;
+      const db = getDB()
+      if (!db) return
 
-      const groupId = uuidv4();
-      const now = new Date().toISOString();
+      const groupId = uuidv4()
+      const now = new Date().toISOString()
 
       await db.run(
         `INSERT INTO media_groups (id, sourceUrl, platform, mode, thumbnailPath, totalCount, createdAt, registeredAt)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [groupId, sourceUrl, platform, mode, thumbnailPath || null, items.length, now, now]
-      );
+      )
 
       for (let i = 0; i < items.length; i++) {
-        const item = items[i];
+        const item = items[i]
         await db.run(
           `INSERT INTO media_items (id, groupId, filePath, remoteUrl, type, itemIndex, createdAt)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [uuidv4(), groupId, item.filePath || null, item.remoteUrl || null, item.type, i, now]
-        );
+        )
       }
 
       if (tagIds && tagIds.length > 0) {
@@ -47,53 +47,53 @@ export const useMediaStore = defineStore('media', {
           await db.run(
             'INSERT OR IGNORE INTO group_tags (groupId, tagId) VALUES (?, ?)',
             [groupId, tagId]
-          );
+          )
           await db.run(
             'UPDATE tags SET count = count + 1 WHERE id = ?',
             [tagId]
-          );
+          )
         }
       }
 
-      await this.loadGroups();
-      return groupId;
+      await this.loadGroups()
+      return groupId
     },
 
     async deleteGroup(groupId) {
-      const db = getDB();
-      if (!db) return;
-      await db.run('DELETE FROM media_groups WHERE id = ?', [groupId]);
-      await this.loadGroups();
+      const db = getDB()
+      if (!db) return
+      await db.run('DELETE FROM media_groups WHERE id = ?', [groupId])
+      await this.loadGroups()
     },
 
     async deleteItem(itemId, groupId) {
-      const db = getDB();
-      if (!db) return;
-      await db.run('DELETE FROM media_items WHERE id = ?', [itemId]);
+      const db = getDB()
+      if (!db) return
+      await db.run('DELETE FROM media_items WHERE id = ?', [itemId])
       const result = await db.query(
         'SELECT COUNT(*) as cnt FROM media_items WHERE groupId = ?',
         [groupId]
-      );
-      const cnt = result.values?.[0]?.cnt ?? 0;
+      )
+      const cnt = result.values?.[0]?.cnt ?? 0
       if (cnt === 0) {
-        await this.deleteGroup(groupId);
+        await this.deleteGroup(groupId)
       } else {
         await db.run(
           'UPDATE media_groups SET totalCount = ? WHERE id = ?',
           [cnt, groupId]
-        );
-        await this.loadGroups();
+        )
+        await this.loadGroups()
       }
     },
 
     async getItemsByGroup(groupId) {
-      const db = getDB();
-      if (!db) return [];
+      const db = getDB()
+      if (!db) return []
       const result = await db.query(
         'SELECT * FROM media_items WHERE groupId = ? ORDER BY itemIndex ASC',
         [groupId]
-      );
-      return result.values || [];
+      )
+      return result.values || []
     },
   },
-});
+})

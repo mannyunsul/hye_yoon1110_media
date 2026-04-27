@@ -8,6 +8,7 @@ const routes = [
       { path: '/unmanaged', component: () => import('pages/UnmanagedPage.vue') },
       { path: '/download', component: () => import('pages/DownloadPage.vue') },
       { path: '/settings', component: () => import('pages/SettingsPage.vue') },
+      { path: '/guide', component: () => import('pages/GuidePage.vue') },
     ],
   },
 

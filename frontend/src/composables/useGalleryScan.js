@@ -11,7 +11,7 @@ export function useGalleryScan() {
     const registered = await db.query('SELECT filePath FROM media_items WHERE filePath IS NOT NULL')
     const registeredPaths = new Set((registered.values || []).map((r) => r.filePath))
 
-    const { Media } = await import('@capacitor/media')
+    const { Media } = await import('@capacitor-community/media')
     const { medias } = await Media.getMedias({ types: 'all', thumbnailWidth: 200, thumbnailHeight: 200 })
 
     return medias.filter((m) => !registeredPaths.has(m.identifier))
