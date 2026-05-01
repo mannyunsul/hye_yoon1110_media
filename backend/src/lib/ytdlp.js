@@ -19,10 +19,19 @@ function buildCookieFile(cookieString, domain) {
   return lines.join('\n');
 }
 
+function pickUrl(item) {
+  if (item.url) return item.url;
+  // formats 배열이 있으면 가장 좋은 포맷의 url 반환
+  if (Array.isArray(item.formats) && item.formats.length > 0) {
+    const best = item.formats[item.formats.length - 1];
+    return best.url || null;
+  }
+  return null;
+}
+
 async function extractMedia(url, cookies = null) {
   const args = [
     '--dump-json',
-    '--flat-playlist',
     '--no-playlist',
   ];
 
@@ -63,14 +72,14 @@ async function extractMedia(url, cookies = null) {
   const media = [];
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    if (item.url && (item.ext === 'mp4' || item.vcodec)) {
-      media.push({ url: item.url, type: 'video', index: i });
-      continue;
-    }
-    if (item.url) {
-      media.push({ url: item.url, type: 'image', index: i });
-    }
+    const mediaUrl = pickUrl(item);
+    if (!mediaUrl) continue;
+
+    const isVideo = item.ext === 'mp4' || !!item.vcodec;
+    media.push({ url: mediaUrl, type: isVideo ? 'video' : 'image', index: i });
   }
+
+  if (media.length === 0) throw new Error('미디어를 찾을 수 없습니다.');
 
   return media;
 }
