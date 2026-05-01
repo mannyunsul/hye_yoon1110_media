@@ -39,7 +39,8 @@ export function useDownload() {
       return null
     }
 
-    const response = await axios.get(remoteUrl, { responseType: 'blob' })
+    const proxyUrl = `${BACKEND_URL}/api/proxy?url=${encodeURIComponent(remoteUrl)}`
+    const response = await axios.get(proxyUrl, { responseType: 'blob' })
     const blob = response.data
     const base64 = await blobToBase64(blob)
 
