@@ -42,7 +42,9 @@ async function extractMedia(url, cookies = null) {
   try {
     ({ stdout } = await execFileAsync('yt-dlp', args, { timeout: 30000 }));
   } catch (err) {
-    throw new Error(`yt-dlp 실행 실패: ${err.message}`);
+    const stderr = err.stderr || '';
+    console.error('[yt-dlp stderr]', stderr);
+    throw new Error(`yt-dlp 실행 실패: ${stderr || err.message}`);
   } finally {
     if (cookieFilePath && fs.existsSync(cookieFilePath)) {
       fs.unlinkSync(cookieFilePath);

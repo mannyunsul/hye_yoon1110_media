@@ -17,11 +17,18 @@ export function useDownload() {
     const platform = detectPlatform(url)
     const cookies = await getCookies(platform)
 
-    const { data } = await axios.post(
-      `${BACKEND_URL}/api/fetch`,
-      { url, cookies },
-      { timeout: 30000 }
-    )
+    let data
+    try {
+      const res = await axios.post(
+        `${BACKEND_URL}/api/fetch`,
+        { url, cookies },
+        { timeout: 30000 }
+      )
+      data = res.data
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message
+      throw new Error(msg)
+    }
     if (!data.success) throw new Error(data.message || '미디어 추출 실패')
     return data
   }
