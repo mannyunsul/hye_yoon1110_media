@@ -20,7 +20,6 @@ function pickUrl(item) {
 async function extractMedia(url, cookies = null) {
   const args = [
     '--dump-json',
-    '--yes-playlist',
   ];
 
   if (cookies) {
