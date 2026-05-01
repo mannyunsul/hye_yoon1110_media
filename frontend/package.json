@@ -15,8 +15,12 @@
     "postinstall": "quasar prepare"
   },
   "dependencies": {
+    "@azure/msal-browser": "^5.7.0",
+    "@capacitor-community/media": "^9.1.0",
     "@capacitor-community/sqlite": "^8.1.0",
     "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/share": "^8.0.1",
     "@quasar/extras": "^1.16.4",
     "axios": "^1.15.1",
     "pinia": "^3.0.1",
@@ -35,6 +39,7 @@
     "globals": "^17.4.0",
     "postcss": "^8.5.8",
     "prettier": "^3.8.1",
+    "sharp": "^0.34.5",
     "vite-plugin-checker": "^0.12.0",
     "vue-eslint-parser": "^10.4.0"
   },

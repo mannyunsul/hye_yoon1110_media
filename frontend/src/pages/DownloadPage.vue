@@ -114,17 +114,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import PlatformBadge from '../components/PlatformBadge.vue'
 import { useDownload } from '../composables/useDownload'
 import { useMediaStore } from '../stores/mediaStore'
 import { useTagStore } from '../stores/tagStore'
+import { useSharedUrl } from '../composables/useSharedUrl'
 
 const $q = useQuasar()
 const { fetchMediaInfo, downloadFile, generateFilename } = useDownload()
 const mediaStore = useMediaStore()
 const tagStore = useTagStore()
+const { consumeSharedUrl } = useSharedUrl()
 
 const modes = [
   { value: 'download', label: '⬇️ 다운로드' },
@@ -133,6 +135,13 @@ const modes = [
 
 const mode = ref('download')
 const inputUrl = ref('')
+
+onMounted(() => {
+  const url = consumeSharedUrl()
+  if (url) {
+    inputUrl.value = url
+  }
+})
 const loading = ref(false)
 const saving = ref(false)
 const result = ref(null)

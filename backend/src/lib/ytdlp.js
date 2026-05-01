@@ -15,7 +15,7 @@ function pickUrl(item) {
 async function extractMedia(url, cookies = null) {
   const args = [
     '--dump-json',
-    '--no-playlist',
+    '--yes-playlist',
   ];
 
   if (cookies) {
@@ -51,7 +51,7 @@ async function extractMedia(url, cookies = null) {
     const mediaUrl = pickUrl(item);
     if (!mediaUrl) continue;
 
-    const isVideo = item.ext === 'mp4' || !!item.vcodec;
+    const isVideo = item.ext === 'mp4' || (item.vcodec && item.vcodec !== 'none');
     media.push({ url: mediaUrl, type: isVideo ? 'video' : 'image', index: i });
   }
 
