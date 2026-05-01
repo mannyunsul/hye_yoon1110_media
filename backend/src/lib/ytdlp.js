@@ -40,7 +40,7 @@ async function extractMedia(url, cookies = null) {
 
   let stdout;
   try {
-    ({ stdout } = await execFileAsync('yt-dlp', args, { timeout: 30000 }));
+    ({ stdout } = await execFileAsync('python3', ['-m', 'yt_dlp', ...args], { timeout: 30000 }));
   } catch (err) {
     const stderr = err.stderr || '';
     console.error('[yt-dlp stderr]', stderr);
