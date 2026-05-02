@@ -84,49 +84,73 @@ public class WebAuthPlugin extends Plugin {
             cookieManager.setAcceptCookie(true);
             cookieManager.setAcceptThirdPartyCookies(wv, true);
 
-            // 1순위: script 태그 JSON에서 display_url 추출 (캐러셀 전체)
-            // 2순위: img 태그에서 CDN URL 추출 (fallback)
+            String igCookies = cookieManager.getCookie("https://www.instagram.com");
+            android.util.Log.d("WebAuthPlugin", "[extract] ig cookies present: " + (igCookies != null && igCookies.contains("sessionid")));
+
+            // 이미지 추출 JS:
+            // 1순위: script 태그 JSON의 display_url
+            // 2순위: img/source 태그의 src, data-src, srcset
+            // 3순위: innerHTML 전체에서 CDN URL 스캔
             final String js =
                 "(function() {" +
                 "var images=[],seen={};" +
-                "document.querySelectorAll('script').forEach(function(s){" +
-                "  var t=s.textContent;" +
-                "  var re=/\"display_url\":\"(https:[^\"]+)\"/g,m;" +
-                "  while((m=re.exec(t))!==null){" +
-                "    var u=m[1].replace(/\\\\u0026/g,'&').replace(/\\\\/g,'');" +
-                "    if(!seen[u]){seen[u]=1;images.push(u);}" +
-                "  }" +
-                "});" +
-                "if(images.length===0){" +
-                "  document.querySelectorAll('img').forEach(function(el){" +
-                "    var src=el.src||'';" +
-                "    if((src.indexOf('cdninstagram')>=0||src.indexOf('fbcdn')>=0)&&!seen[src])" +
-                "      {seen[src]=1;images.push(src);}" +
-                "  });" +
+                "function addUrl(u){" +
+                "  if(!u)return;" +
+                "  u=u.replace(/\\\\u0026/g,'&').replace(/&amp;/g,'&').replace(/\\\\/g,'');" +
+                "  if((u.indexOf('cdninstagram')<0&&u.indexOf('fbcdn')<0))return;" +
+                "  if(!seen[u]){seen[u]=1;images.push(u);}" +
                 "}" +
+                // Method 1: display_url in script tags
+                "document.querySelectorAll('script').forEach(function(s){" +
+                "  var t=s.textContent,re=/\"display_url\":\"(https:[^\"]+)\"/g,m;" +
+                "  while((m=re.exec(t))!==null)addUrl(m[1]);" +
+                "});" +
+                // Method 2: img + source 태그 (src, data-src, srcset)
+                "document.querySelectorAll('img,source').forEach(function(el){" +
+                "  addUrl(el.src||'');" +
+                "  addUrl(el.getAttribute('data-src')||'');" +
+                "  addUrl(el.getAttribute('data-lazy-src')||'');" +
+                "  (el.srcset||el.getAttribute('data-srcset')||'').split(',').forEach(function(s){addUrl(s.trim().split(' ')[0]);});" +
+                "});" +
+                // Method 3: innerHTML 전체 스캔 (위 두 방법 실패시)
+                "if(images.length===0){" +
+                "  var html=document.documentElement.innerHTML;" +
+                "  var re3=/https:\\/\\/[a-z0-9\\-]+\\.(?:cdninstagram|fbcdn)\\.net\\/[^\\s\"'<>\\\\]+/g,m3;" +
+                "  while((m3=re3.exec(html))!==null){" +
+                "    var u3=m3[0].replace(/&amp;/g,'&');" +
+                "    if(!seen[u3]){seen[u3]=1;images.push(u3);}" +
+                "  }" +
+                "}" +
+                "var dbg={imgs:document.querySelectorAll('img').length,scripts:document.querySelectorAll('script').length,found:images.length};" +
+                "console.log('[extract-js] debug:'+JSON.stringify(dbg));" +
                 "return images;" +
                 "})()";
 
-            // 15초 내에 페이지가 안 열리면 빈 결과 반환
+            // 20초 timeout
             final Runnable timeoutRunnable = () -> {
                 if (!done.compareAndSet(false, true)) return;
+                android.util.Log.d("WebAuthPlugin", "[extract] timeout reached");
                 JSObject ret = new JSObject();
                 try { ret.put("images", new JSONArray()); } catch (Exception ignored) {}
                 call.resolve(ret);
                 wv.destroy();
             };
-            handler.postDelayed(timeoutRunnable, 15000);
+            handler.postDelayed(timeoutRunnable, 20000);
 
             wv.setWebViewClient(new WebViewClient() {
                 @Override
                 public void onPageFinished(WebView view, String pageUrl) {
-                    // 처음 한 번만 실행 (리다이렉트로 여러 번 호출될 수 있음)
+                    android.util.Log.d("WebAuthPlugin", "[extract] onPageFinished: " + pageUrl);
+                    if (pageUrl == null || !pageUrl.contains("instagram.com")) return;
+                    // 리다이렉트가 끝나고 실제 인스타그램 페이지에 도달했을 때만 실행
                     if (!done.compareAndSet(false, true)) return;
                     handler.removeCallbacks(timeoutRunnable);
 
-                    // React 앱 렌더링 대기 후 JavaScript 실행
+                    // React 앱 렌더링 + 이미지 lazy-load 대기
                     handler.postDelayed(() -> {
+                        android.util.Log.d("WebAuthPlugin", "[extract] running JS extraction");
                         view.evaluateJavascript(js, value -> {
+                            android.util.Log.d("WebAuthPlugin", "[extract] JS result length: " + (value != null ? value.length() : 0));
                             JSObject ret = new JSObject();
                             try {
                                 ret.put("images", new JSONArray(value != null ? value : "[]"));
@@ -136,7 +160,7 @@ public class WebAuthPlugin extends Plugin {
                             call.resolve(ret);
                             view.destroy();
                         });
-                    }, 3000);
+                    }, 5000);
                 }
             });
 
