@@ -19,7 +19,7 @@ function pickUrl(item) {
 
 async function extractMedia(url, cookies = null) {
   const args = [
-    '--dump-json',
+    '--dump-single-json',
   ];
 
   if (cookies) {
@@ -33,7 +33,9 @@ async function extractMedia(url, cookies = null) {
 
   let stdout;
   try {
-    ({ stdout } = await execFileAsync('yt-dlp', args, { timeout: 30000 }));
+    const result = await execFileAsync('yt-dlp', args, { timeout: 30000 });
+    stdout = result.stdout;
+    if (result.stderr) console.log('[yt-dlp stderr on success]', result.stderr.substring(0, 500));
   } catch (err) {
     const stderr = err.stderr || '';
     console.error('[yt-dlp stderr]', stderr);
