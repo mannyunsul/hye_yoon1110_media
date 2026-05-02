@@ -57,7 +57,54 @@ function extractDisplayUrls(html) {
   return images;
 }
 
+async function extractInstagramEmbed(url) {
+  // 인증 불필요한 임베드 페이지에서 캐러셀 이미지 추출
+  const match = url.match(/\/(p|reel|tv)\/([A-Za-z0-9_-]+)/);
+  if (!match) return [];
+
+  const shortcode = match[2];
+  const embedUrl = `https://www.instagram.com/p/${shortcode}/embed/captioned/`;
+  console.log('[instagram-embed] fetching:', embedUrl);
+
+  try {
+    const { data: html } = await axios.get(embedUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+      timeout: 15000,
+    });
+    console.log('[instagram-embed] html length:', html.length);
+
+    const images = extractDisplayUrls(html);
+    console.log('[instagram-embed] display_url count:', images.length);
+    if (images.length > 0) return images;
+
+    // display_url 없으면 img 태그에서 직접 추출
+    const imgPattern = /https:\/\/[a-z0-9\-]+\.(?:cdninstagram|fbcdn)\.net\/v\/[^\s"'<>]+/g;
+    const seen = new Set();
+    const cdnImages = [];
+    for (const m of html.matchAll(imgPattern)) {
+      const u = m[0].replace(/&amp;/g, '&');
+      if (!seen.has(u)) { seen.add(u); cdnImages.push(u); }
+    }
+    console.log('[instagram-embed] cdn url count:', cdnImages.length);
+    return cdnImages;
+  } catch (e) {
+    console.log('[instagram-embed] error:', e.message);
+    return [];
+  }
+}
+
 async function extractInstagramImages(url, cookies) {
+  // 1순위: 임베드 페이지 (인증 불필요, 캐러셀 전체 지원)
+  const embedImages = await extractInstagramEmbed(url);
+  if (embedImages.length > 0) {
+    console.log('[instagram-image] using embed results:', embedImages.length);
+    return embedImages.map((imgUrl, i) => ({ url: imgUrl, type: 'image', index: i }));
+  }
+
   const headers = {
     'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
     'Accept': 'text/html,application/xhtml+xml',
