@@ -99,7 +99,13 @@ async function extractMedia(url, cookies = null) {
     }
   }
 
-  if (items.length === 0) throw new Error('미디어를 찾을 수 없습니다.');
+  if (items.length === 0) {
+    if (url.includes('instagram.com')) {
+      console.log('[yt-dlp] empty items for Instagram, falling back to og:image extraction');
+      return await extractInstagramImages(url, cookies);
+    }
+    throw new Error('미디어를 찾을 수 없습니다.');
+  }
 
   const media = [];
   for (let i = 0; i < items.length; i++) {
@@ -110,7 +116,13 @@ async function extractMedia(url, cookies = null) {
     media.push({ url: mediaUrl, type: isVideo ? 'video' : 'image', index: i });
   }
 
-  if (media.length === 0) throw new Error('미디어를 찾을 수 없습니다.');
+  if (media.length === 0) {
+    if (url.includes('instagram.com')) {
+      console.log('[yt-dlp] no media urls for Instagram, falling back to og:image extraction');
+      return await extractInstagramImages(url, cookies);
+    }
+    throw new Error('미디어를 찾을 수 없습니다.');
+  }
 
   return media;
 }
