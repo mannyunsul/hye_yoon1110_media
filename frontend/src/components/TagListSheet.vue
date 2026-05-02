@@ -100,9 +100,9 @@ function selectTag(tag) {
   show.value = false
 }
 
-function deleteTag(tag) {
+async function deleteTag(tag) {
   if (tag.count === 0) {
-    tagStore.deleteTag(tag.id)
+    await tagStore.deleteTag(tag.id)
     return
   }
   $q.dialog({
@@ -111,8 +111,8 @@ function deleteTag(tag) {
     cancel: { label: '취소', flat: true },
     ok: { label: '삭제', color: 'negative' },
     dark: true,
-  }).onOk(() => {
-    tagStore.deleteTag(tag.id)
+  }).onOk(async () => {
+    await tagStore.deleteTag(tag.id)
   })
 }
 </script>
