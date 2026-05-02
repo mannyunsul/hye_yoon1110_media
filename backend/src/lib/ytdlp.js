@@ -19,21 +19,29 @@ function pickUrl(item) {
 
 async function extractInstagramImages(url, cookies) {
   const headers = {
-    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
   };
   if (cookies) headers['Cookie'] = cookies;
 
   const { data: html } = await axios.get(url, { headers, timeout: 15000 });
 
-  const matches = [...html.matchAll(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/g)];
-  const images = matches
+  console.log('[instagram-image] html length:', html.length);
+  const titleMatch = html.match(/<title>([^<]+)<\/title>/);
+  console.log('[instagram-image] title:', titleMatch ? titleMatch[1] : 'none');
+
+  // property/content 순서 무관하게 매칭
+  const pattern1 = [...html.matchAll(/<meta[^>]+property="og:image[^"]*"[^>]+content="([^"]+)"/g)];
+  const pattern2 = [...html.matchAll(/<meta[^>]+content="([^"]+)"[^>]+property="og:image[^"]*"/g)];
+  const images = [...pattern1, ...pattern2]
     .map(m => m[1].replace(/&amp;/g, '&'))
     .filter(u => u.startsWith('http'));
 
+  console.log('[instagram-image] found', images.length, 'image(s)');
+
   if (images.length === 0) throw new Error('이미지를 찾을 수 없습니다.');
 
-  console.log('[instagram-image] found', images.length, 'image(s) via og:image');
   return images.map((imgUrl, i) => ({ url: imgUrl, type: 'image', index: i }));
 }
 
