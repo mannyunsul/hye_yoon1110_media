@@ -167,14 +167,43 @@ function openTagEdit() {
 
 async function onSaveTagEdit(newTags) {
   const db = getDB()
-  await db.run('DELETE FROM group_tags WHERE groupId = ?', [selectedGroup.value.id])
+  const groupId = selectedGroup.value.id
+
+  // 기존 태그와 새 태그 비교
+  const oldIds = new Set(selectedGroupTags.value.map((t) => t.id))
+  const newIds = new Set(newTags.map((t) => t.id))
+
+  // 제거된 태그 count 감소
+  for (const tag of selectedGroupTags.value) {
+    if (!newIds.has(tag.id)) {
+      await db.run(
+        'UPDATE tags SET count = MAX(0, count - 1) WHERE id = ?',
+        [tag.id]
+      )
+    }
+  }
+
+  // 추가된 태그 count 증가
+  for (const tag of newTags) {
+    if (!oldIds.has(tag.id)) {
+      await db.run(
+        'UPDATE tags SET count = count + 1 WHERE id = ?',
+        [tag.id]
+      )
+    }
+  }
+
+  // group_tags 갱신
+  await db.run('DELETE FROM group_tags WHERE groupId = ?', [groupId])
   for (const tag of newTags) {
     await db.run(
       'INSERT OR IGNORE INTO group_tags (groupId, tagId) VALUES (?, ?)',
-      [selectedGroup.value.id, tag.id]
+      [groupId, tag.id]
     )
   }
+
   await tagStore.loadTags()
+  await mediaStore.loadGroups()
 }
 
 function confirmDelete() {
