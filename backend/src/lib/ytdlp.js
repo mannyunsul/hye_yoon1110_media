@@ -92,11 +92,9 @@ async function extractInstagramImages(url, cookies) {
 async function extractMedia(url, cookies = null) {
   const args = ['--dump-json'];
 
-  let tmpCookieFile = null;
   if (cookies) {
     console.log('[yt-dlp] cookies received, length:', cookies.length);
-    tmpCookieFile = writeCookieFile(cookies);
-    args.push('--cookies', tmpCookieFile);
+    args.push('--add-header', `Cookie:${cookies}`);
   } else {
     console.log('[yt-dlp] no cookies provided');
   }
@@ -111,17 +109,13 @@ async function extractMedia(url, cookies = null) {
     const stderr = err.stderr || '';
     console.error('[yt-dlp stderr]', stderr);
 
-    // 이미지 전용 포스트 → og:image fallback
-    if (stderr.includes('There is no video in this post') || stderr.includes('No video formats found')) {
-      console.log('[yt-dlp] image post detected, falling back to og:image extraction');
+    // Instagram: 어떤 오류든 이미지 추출로 fallback
+    if (url.includes('instagram.com')) {
+      console.log('[yt-dlp] Instagram yt-dlp failed, falling back to image extraction');
       return await extractInstagramImages(url, cookies);
     }
 
     throw new Error(`yt-dlp 실행 실패: ${stderr || err.message}`);
-  } finally {
-    if (tmpCookieFile) {
-      try { fs.unlinkSync(tmpCookieFile); } catch {}
-    }
   }
 
   const rawItems = stdout
