@@ -16,7 +16,19 @@ export const useMediaStore = defineStore('media', {
       const result = await db.query(
         'SELECT * FROM media_groups ORDER BY registeredAt DESC'
       )
-      this.groups = result.values || []
+      const groups = result.values || []
+
+      for (const group of groups) {
+        const tagResult = await db.query(
+          'SELECT t.id, t.name FROM tags t JOIN group_tags gt ON t.id = gt.tagId WHERE gt.groupId = ?',
+          [group.id]
+        )
+        const tags = tagResult.values || []
+        group._tagIds = tags.map((t) => t.id)
+        group._tagNames = tags.map((t) => t.name)
+      }
+
+      this.groups = groups
       this.loading = false
     },
 
@@ -62,7 +74,25 @@ export const useMediaStore = defineStore('media', {
     async deleteGroup(groupId) {
       const db = getDB()
       if (!db) return
+
+      // 연결된 태그 ID 조회 후 count 감소
+      const tagResult = await db.query(
+        'SELECT tagId FROM group_tags WHERE groupId = ?',
+        [groupId]
+      )
+      const tagIds = (tagResult.values || []).map((r) => r.tagId)
+      for (const tagId of tagIds) {
+        await db.run(
+          'UPDATE tags SET count = MAX(0, count - 1) WHERE id = ?',
+          [tagId]
+        )
+      }
+
+      // 수동 cascade (PRAGMA foreign_keys 꺼져 있으므로)
+      await db.run('DELETE FROM group_tags WHERE groupId = ?', [groupId])
+      await db.run('DELETE FROM media_items WHERE groupId = ?', [groupId])
       await db.run('DELETE FROM media_groups WHERE id = ?', [groupId])
+
       await this.loadGroups()
     },
 
