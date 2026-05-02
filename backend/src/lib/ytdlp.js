@@ -1,8 +1,27 @@
 const { execFile } = require('child_process');
 const { promisify } = require('util');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const axios = require('axios');
 
 const execFileAsync = promisify(execFile);
+
+function writeCookieFile(cookieStr) {
+  const lines = ['# Netscape HTTP Cookie File'];
+  const pairs = cookieStr.split(';').map(c => c.trim()).filter(Boolean);
+  for (const pair of pairs) {
+    const eqIdx = pair.indexOf('=');
+    if (eqIdx === -1) continue;
+    const name = pair.substring(0, eqIdx).trim();
+    const value = pair.substring(eqIdx + 1).trim();
+    // domain, include_subdomains, path, https_only, expiry, name, value
+    lines.push(`.instagram.com\tTRUE\t/\tFALSE\t0\t${name}\t${value}`);
+  }
+  const tmpPath = path.join(os.tmpdir(), `yt_cookies_${Date.now()}.txt`);
+  fs.writeFileSync(tmpPath, lines.join('\n') + '\n');
+  return tmpPath;
+}
 
 function pickUrl(item) {
   if (item.url) return item.url;
@@ -49,9 +68,11 @@ async function extractInstagramImages(url, cookies) {
 async function extractMedia(url, cookies = null) {
   const args = ['--dump-json'];
 
+  let tmpCookieFile = null;
   if (cookies) {
     console.log('[yt-dlp] cookies received, length:', cookies.length);
-    args.push('--add-header', `Cookie:${cookies}`);
+    tmpCookieFile = writeCookieFile(cookies);
+    args.push('--cookies', tmpCookieFile);
   } else {
     console.log('[yt-dlp] no cookies provided');
   }
@@ -67,12 +88,16 @@ async function extractMedia(url, cookies = null) {
     console.error('[yt-dlp stderr]', stderr);
 
     // 이미지 전용 포스트 → og:image fallback
-    if (stderr.includes('There is no video in this post')) {
+    if (stderr.includes('There is no video in this post') || stderr.includes('No video formats found')) {
       console.log('[yt-dlp] image post detected, falling back to og:image extraction');
       return await extractInstagramImages(url, cookies);
     }
 
     throw new Error(`yt-dlp 실행 실패: ${stderr || err.message}`);
+  } finally {
+    if (tmpCookieFile) {
+      try { fs.unlinkSync(tmpCookieFile); } catch {}
+    }
   }
 
   const rawItems = stdout
@@ -83,6 +108,9 @@ async function extractMedia(url, cookies = null) {
     .filter(Boolean);
 
   console.log('[yt-dlp] raw lines:', rawItems.length);
+  if (rawItems.length > 0) {
+    console.log('[yt-dlp] first item type:', rawItems[0]._type, 'entries:', Array.isArray(rawItems[0].entries) ? rawItems[0].entries.length : 'n/a');
+  }
 
   // 이미지 캐러셀: yt-dlp가 에러 없이 빈 결과 반환 → og:image fallback
   if (rawItems.length === 0 && url.includes('instagram.com')) {
