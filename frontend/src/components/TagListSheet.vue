@@ -31,7 +31,16 @@
                 <q-item-label class="text-grey-3" style="font-size:12px">{{ tag.name }}</q-item-label>
               </q-item-section>
               <q-item-section side>
-                <q-badge color="grey-8" :label="tag.count" />
+                <div class="row items-center q-gutter-xs">
+                  <q-badge color="grey-8" :label="tag.count" />
+                  <q-btn
+                    flat round dense
+                    icon="delete"
+                    size="xs"
+                    color="grey-6"
+                    @click.stop="deleteTag(tag)"
+                  />
+                </div>
               </q-item-section>
             </q-item>
           </template>
@@ -55,6 +64,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import { useTagStore } from '../stores/tagStore'
 
 const props = defineProps({
@@ -62,6 +72,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue', 'select'])
 
+const $q = useQuasar()
 const tagStore = useTagStore()
 const show = ref(props.modelValue)
 const search = ref('')
@@ -87,6 +98,22 @@ const filteredByChosung = computed(() => {
 function selectTag(tag) {
   emit('select', tag)
   show.value = false
+}
+
+function deleteTag(tag) {
+  if (tag.count === 0) {
+    tagStore.deleteTag(tag.id)
+    return
+  }
+  $q.dialog({
+    title: '태그 삭제',
+    message: `'${tag.name}' 태그가 ${tag.count}개 항목에서 제거됩니다. 삭제할까요?`,
+    cancel: { label: '취소', flat: true },
+    ok: { label: '삭제', color: 'negative' },
+    dark: true,
+  }).onOk(() => {
+    tagStore.deleteTag(tag.id)
+  })
 }
 </script>
 
