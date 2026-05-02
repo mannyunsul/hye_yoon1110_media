@@ -84,6 +84,12 @@ async function extractMedia(url, cookies = null) {
 
   console.log('[yt-dlp] raw lines:', rawItems.length);
 
+  // 이미지 캐러셀: yt-dlp가 에러 없이 빈 결과 반환 → og:image fallback
+  if (rawItems.length === 0 && url.includes('instagram.com')) {
+    console.log('[yt-dlp] empty output for Instagram, falling back to og:image extraction');
+    return await extractInstagramImages(url, cookies);
+  }
+
   const items = [];
   for (const item of rawItems) {
     if (item._type === 'playlist' && Array.isArray(item.entries)) {
