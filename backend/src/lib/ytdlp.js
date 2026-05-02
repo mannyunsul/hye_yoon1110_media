@@ -36,9 +36,28 @@ function pickUrl(item) {
   return null;
 }
 
+function extractDisplayUrls(html) {
+  // Instagram은 페이지 HTML 안에 JSON 데이터로 display_url을 포함시킴
+  // 캐러셀의 각 이미지가 별도 display_url 항목으로 존재
+  const seen = new Set();
+  const images = [];
+  const pattern = /"display_url"\s*:\s*"(https:[^"]+)"/g;
+  for (const m of html.matchAll(pattern)) {
+    const u = m[1]
+      .replace(/\\\//g, '/')
+      .replace(/\\u0026/g, '&')
+      .replace(/\\u003A/g, ':')
+      .replace(/\\u003F/g, '?')
+      .replace(/\\u003D/g, '=');
+    if (!seen.has(u) && (u.includes('cdninstagram') || u.includes('fbcdn'))) {
+      seen.add(u);
+      images.push(u);
+    }
+  }
+  return images;
+}
+
 async function extractInstagramImages(url, cookies) {
-  // 크롤러 UA로 요청해야 og:image가 포함된 SSR HTML을 받을 수 있음
-  // 로그인 쿠키로 요청하면 React SPA(og:image 없음)를 반환
   const headers = {
     'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
     'Accept': 'text/html,application/xhtml+xml',
@@ -47,22 +66,27 @@ async function extractInstagramImages(url, cookies) {
   const { data: html } = await axios.get(url, { headers, timeout: 15000 });
 
   console.log('[instagram-image] html length:', html.length);
-  const titleMatch = html.match(/<title>([^<]+)<\/title>/);
-  console.log('[instagram-image] title:', titleMatch ? titleMatch[1] : 'none');
-  console.log('[instagram-image] html sample:', html.substring(0, 500).replace(/\n/g, ' '));
 
-  // property/content 순서 무관하게 매칭
+  // 1순위: 페이지 JSON에서 display_url 추출 (캐러셀 전체 이미지)
+  const displayUrls = extractDisplayUrls(html);
+  console.log('[instagram-image] display_url count:', displayUrls.length);
+  if (displayUrls.length > 0) {
+    return displayUrls.map((imgUrl, i) => ({ url: imgUrl, type: 'image', index: i }));
+  }
+
+  // 2순위: og:image fallback (단일 이미지)
   const pattern1 = [...html.matchAll(/<meta[^>]+property="og:image[^"]*"[^>]+content="([^"]+)"/g)];
   const pattern2 = [...html.matchAll(/<meta[^>]+content="([^"]+)"[^>]+property="og:image[^"]*"/g)];
-  const images = [...pattern1, ...pattern2]
+  const ogImages = [...pattern1, ...pattern2]
     .map(m => m[1].replace(/&amp;/g, '&'))
     .filter(u => u.startsWith('http'));
 
-  console.log('[instagram-image] found', images.length, 'image(s)');
+  console.log('[instagram-image] og:image count:', ogImages.length);
+  if (ogImages.length > 0) {
+    return ogImages.map((imgUrl, i) => ({ url: imgUrl, type: 'image', index: i }));
+  }
 
-  if (images.length === 0) throw new Error('이미지를 찾을 수 없습니다.');
-
-  return images.map((imgUrl, i) => ({ url: imgUrl, type: 'image', index: i }));
+  throw new Error('이미지를 찾을 수 없습니다.');
 }
 
 async function extractMedia(url, cookies = null) {
