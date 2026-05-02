@@ -34,5 +34,16 @@ export function useWebAuth() {
     return !!cookies
   }
 
-  return { login, getCookies, logout, isLoggedIn }
+  async function extractInstagramMedia(url) {
+    if (!Capacitor.isNativePlatform()) return { images: [] }
+    try {
+      const result = await WebAuth.extractInstagramMedia({ url })
+      return result
+    } catch (e) {
+      console.warn('[WebAuth] extractInstagramMedia error:', e.message)
+      return { images: [] }
+    }
+  }
+
+  return { login, getCookies, logout, isLoggedIn, extractInstagramMedia }
 }

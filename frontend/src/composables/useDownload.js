@@ -5,7 +5,7 @@ import { BACKEND_URL } from '../config'
 import { useWebAuth } from './useWebAuth'
 
 export function useDownload() {
-  const { getCookies } = useWebAuth()
+  const { getCookies, extractInstagramMedia } = useWebAuth()
 
   function detectPlatform(url) {
     if (url.includes('instagram.com')) return 'instagram'
@@ -15,8 +15,22 @@ export function useDownload() {
 
   async function fetchMediaInfo(url) {
     const platform = detectPlatform(url)
-    const cookies = await getCookies(platform)
 
+    // Instagram: 앱 WebView에서 직접 이미지 추출 시도 (캐러셀 전체 지원)
+    if (platform === 'instagram') {
+      const nativeResult = await extractInstagramMedia(url)
+      const images = nativeResult?.images
+      if (Array.isArray(images) && images.length > 0) {
+        console.log('[native] extracted', images.length, 'image(s)')
+        return {
+          success: true,
+          media: images.map((imgUrl, i) => ({ url: imgUrl, type: 'image', index: i }))
+        }
+      }
+      console.log('[native] no images extracted, falling back to backend')
+    }
+
+    const cookies = await getCookies(platform)
     let data
     try {
       const res = await axios.post(
