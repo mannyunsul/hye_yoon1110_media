@@ -30,6 +30,7 @@ async function extractInstagramImages(url, cookies) {
   console.log('[instagram-image] html length:', html.length);
   const titleMatch = html.match(/<title>([^<]+)<\/title>/);
   console.log('[instagram-image] title:', titleMatch ? titleMatch[1] : 'none');
+  console.log('[instagram-image] html sample:', html.substring(0, 500).replace(/\n/g, ' '));
 
   // property/content 순서 무관하게 매칭
   const pattern1 = [...html.matchAll(/<meta[^>]+property="og:image[^"]*"[^>]+content="([^"]+)"/g)];
