@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -79,13 +81,34 @@ public class WebAuthPlugin extends Plugin {
                 "(KHTML, like Gecko) Chrome/120.0.6099.144 Mobile Safari/537.36"
             );
 
-            // 로그인 시 저장된 instagram.com 쿠키를 이 WebView도 공유
+            // 쿠키 설정: Vue Preferences에 저장된 쿠키를 CookieManager에도 직접 설정
             CookieManager cookieManager = CookieManager.getInstance();
             cookieManager.setAcceptCookie(true);
             cookieManager.setAcceptThirdPartyCookies(wv, true);
 
+            String storedCookies = call.getString("cookies");
+            if (storedCookies != null && !storedCookies.isEmpty()) {
+                for (String pair : storedCookies.split(";")) {
+                    pair = pair.trim();
+                    if (!pair.isEmpty()) {
+                        cookieManager.setCookie("https://www.instagram.com", pair);
+                        cookieManager.setCookie("https://i.instagram.com", pair);
+                    }
+                }
+                cookieManager.flush();
+                android.util.Log.d("WebAuthPlugin", "[extract] set " + storedCookies.split(";").length + " cookies from stored");
+            }
+
             String igCookies = cookieManager.getCookie("https://www.instagram.com");
             android.util.Log.d("WebAuthPlugin", "[extract] ig cookies present: " + (igCookies != null && igCookies.contains("sessionid")));
+
+            // viewport 확보: lazy-load 트리거를 위해 WebView를 화면에 invisible로 붙임
+            final ViewGroup rootView = (ViewGroup) getActivity().getWindow().getDecorView();
+            wv.setVisibility(View.INVISIBLE);
+            rootView.addView(wv, new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            ));
 
             // 이미지 추출 JS:
             // 1순위: script 태그 JSON의 display_url
@@ -126,6 +149,12 @@ public class WebAuthPlugin extends Plugin {
                 "return images;" +
                 "})()";
 
+            // WebView 정리 헬퍼
+            Runnable cleanup = () -> {
+                try { rootView.removeView(wv); } catch (Exception ignored) {}
+                wv.destroy();
+            };
+
             // 20초 timeout
             final Runnable timeoutRunnable = () -> {
                 if (!done.compareAndSet(false, true)) return;
@@ -133,7 +162,7 @@ public class WebAuthPlugin extends Plugin {
                 JSObject ret = new JSObject();
                 try { ret.put("images", new JSONArray()); } catch (Exception ignored) {}
                 call.resolve(ret);
-                wv.destroy();
+                cleanup.run();
             };
             handler.postDelayed(timeoutRunnable, 20000);
 
@@ -158,7 +187,7 @@ public class WebAuthPlugin extends Plugin {
                                 try { ret.put("images", new JSONArray()); } catch (Exception ignored) {}
                             }
                             call.resolve(ret);
-                            view.destroy();
+                            cleanup.run();
                         });
                     }, 5000);
                 }
