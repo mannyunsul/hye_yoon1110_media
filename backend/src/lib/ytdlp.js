@@ -1,12 +1,12 @@
 const { execFile } = require('child_process');
 const { promisify } = require('util');
+const axios = require('axios');
 
 const execFileAsync = promisify(execFile);
 
 function pickUrl(item) {
   if (item.url) return item.url;
   if (Array.isArray(item.formats) && item.formats.length > 0) {
-    // 비디오+오디오 합쳐진 포맷 우선
     const combined = item.formats.filter(
       f => f.url && f.vcodec && f.vcodec !== 'none' && f.acodec && f.acodec !== 'none'
     );
@@ -17,10 +17,28 @@ function pickUrl(item) {
   return null;
 }
 
+async function extractInstagramImages(url, cookies) {
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml',
+  };
+  if (cookies) headers['Cookie'] = cookies;
+
+  const { data: html } = await axios.get(url, { headers, timeout: 15000 });
+
+  const matches = [...html.matchAll(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/g)];
+  const images = matches
+    .map(m => m[1].replace(/&amp;/g, '&'))
+    .filter(u => u.startsWith('http'));
+
+  if (images.length === 0) throw new Error('이미지를 찾을 수 없습니다.');
+
+  console.log('[instagram-image] found', images.length, 'image(s) via og:image');
+  return images.map((imgUrl, i) => ({ url: imgUrl, type: 'image', index: i }));
+}
+
 async function extractMedia(url, cookies = null) {
-  const args = [
-    '--dump-single-json',
-  ];
+  const args = ['--dump-single-json'];
 
   if (cookies) {
     console.log('[yt-dlp] cookies received, length:', cookies.length);
@@ -35,10 +53,16 @@ async function extractMedia(url, cookies = null) {
   try {
     const result = await execFileAsync('yt-dlp', args, { timeout: 30000 });
     stdout = result.stdout;
-    if (result.stderr) console.log('[yt-dlp stderr on success]', result.stderr.substring(0, 500));
   } catch (err) {
     const stderr = err.stderr || '';
     console.error('[yt-dlp stderr]', stderr);
+
+    // 이미지 전용 포스트 → og:image fallback
+    if (stderr.includes('There is no video in this post')) {
+      console.log('[yt-dlp] image post detected, falling back to og:image extraction');
+      return await extractInstagramImages(url, cookies);
+    }
+
     throw new Error(`yt-dlp 실행 실패: ${stderr || err.message}`);
   }
 
@@ -50,12 +74,7 @@ async function extractMedia(url, cookies = null) {
     .filter(Boolean);
 
   console.log('[yt-dlp] raw lines:', rawItems.length);
-  if (rawItems.length > 0) {
-    const first = rawItems[0];
-    console.log('[yt-dlp] first item _type:', first._type, '| has url:', !!first.url, '| has formats:', Array.isArray(first.formats));
-  }
 
-  // playlist 컨테이너면 entries로 펼치기
   const items = [];
   for (const item of rawItems) {
     if (item._type === 'playlist' && Array.isArray(item.entries)) {
@@ -65,18 +84,13 @@ async function extractMedia(url, cookies = null) {
     }
   }
 
-  console.log('[yt-dlp] items after flatten:', items.length);
-
   if (items.length === 0) throw new Error('미디어를 찾을 수 없습니다.');
 
   const media = [];
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     const mediaUrl = pickUrl(item);
-    if (!mediaUrl) {
-      console.log('[yt-dlp] item', i, 'has no url, keys:', Object.keys(item).join(','));
-      continue;
-    }
+    if (!mediaUrl) continue;
     const isVideo = item.ext === 'mp4' || (item.vcodec && item.vcodec !== 'none');
     media.push({ url: mediaUrl, type: isVideo ? 'video' : 'image', index: i });
   }
