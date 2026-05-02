@@ -90,5 +90,13 @@ export const useTagStore = defineStore('tag', {
       );
       await this.loadTags();
     },
+
+    async deleteTag(tagId) {
+      const db = getDB();
+      if (!db) return;
+      await db.run('DELETE FROM group_tags WHERE tagId = ?', [tagId]);
+      await db.run('DELETE FROM tags WHERE id = ?', [tagId]);
+      await this.loadTags();
+    },
   },
 });
