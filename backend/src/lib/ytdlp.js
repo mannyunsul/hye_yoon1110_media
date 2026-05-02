@@ -47,7 +47,7 @@ async function extractInstagramImages(url, cookies) {
 }
 
 async function extractMedia(url, cookies = null) {
-  const args = ['--dump-single-json'];
+  const args = ['--dump-json'];
 
   if (cookies) {
     console.log('[yt-dlp] cookies received, length:', cookies.length);
