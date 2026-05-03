@@ -1,0 +1,10 @@
+2026-05-01T16:29:02.478254185Z [inf]  Starting Container
+2026-05-01T16:29:03.197356388Z [inf]  ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-05-01T16:29:03.197362359Z [inf]  Backend running → http://localhost:8080
+2026-05-01T16:32:05.124608914Z [err]  [yt-dlp stderr] ERROR: [Instagram] DXy4CnsGCN-: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+2026-05-01T16:32:05.124613811Z [err]  ERROR: [Instagram] DXy4CnsGCN-: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+2026-05-01T16:32:05.124622564Z [err]  
+2026-05-01T16:32:05.124627463Z [err]  [fetch error] yt-dlp 실행 실패: ERROR: [Instagram] DXy4CnsGCN-: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+2026-05-01T16:32:05.124633048Z [err]  ERROR: [Instagram] DXy4CnsGCN-: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+2026-05-01T16:32:05.124637256Z [err]  ERROR: [Instagram] DXy4CnsGCN-: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+2026-05-01T16:32:05.124640987Z [err]  

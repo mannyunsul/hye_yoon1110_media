@@ -1,0 +1,11 @@
+2026-05-01T16:23:13.734673237Z [inf]  Starting Container
+2026-05-01T16:23:13.903103579Z [inf]  Backend running → http://localhost:8080
+2026-05-01T16:23:33.511346601Z [err]  WARNING: ffmpeg not found. The downloaded format may not be the best available. Installing ffmpeg is strongly recommended: https://github.com/yt-dlp/yt-dlp#dependencies
+2026-05-01T16:23:33.511352996Z [err]  ERROR: [Instagram] DXy4CnsGCN-: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+2026-05-01T16:23:33.511356659Z [err]  ERROR: [Instagram] DXy4CnsGCN-: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+2026-05-01T16:23:33.511365775Z [err]  WARNING: ffmpeg not found. The downloaded format may not be the best available. Installing ffmpeg is strongly recommended: https://github.com/yt-dlp/yt-dlp#dependencies
+2026-05-01T16:23:33.511372190Z [err]  ERROR: [Instagram] DXy4CnsGCN-: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+2026-05-01T16:23:33.511377825Z [err]  
+2026-05-01T16:23:33.511380678Z [err]  [fetch error] yt-dlp 실행 실패: WARNING: ffmpeg not found. The downloaded format may not be the best available. Installing ffmpeg is strongly recommended: https://github.com/yt-dlp/yt-dlp#dependencies
+2026-05-01T16:23:33.512973367Z [err]  ERROR: [Instagram] DXy4CnsGCN-: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+2026-05-01T16:23:33.512976533Z [err]  

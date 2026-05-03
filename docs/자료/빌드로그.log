@@ -1,0 +1,100 @@
+2026-05-01T16:14:12.121095877Z [inf]  scheduling build on Metal builder "production-builderv3-us-west1-0hwp"
+2026-05-01T16:14:12.859377321Z [inf]  unpacking archive
+2026-05-01T16:14:12.916413683Z [inf]  uploading snapshot
+2026-05-01T16:14:12.931005330Z [inf]  using build driver railpack-v0.23.0
+2026-05-01T16:14:12.992987030Z [err]   INFO No package manager inferred, using npm default
+2026-05-01T16:14:13.032991714Z [inf]                     
+2026-05-01T16:14:13.032994401Z [inf]  [38;2;125;86;243m╭─────────────────╮[0m
+2026-05-01T16:14:13.032995420Z [inf]  [38;2;125;86;243m│[0m Railpack 0.23.0 [38;2;125;86;243m│[0m
+2026-05-01T16:14:13.032996207Z [inf]  [38;2;125;86;243m╰─────────────────╯[0m
+2026-05-01T16:14:13.032996858Z [inf]  
+2026-05-01T16:14:13.032998017Z [inf]    [97m↳ Detected Node[0m
+2026-05-01T16:14:13.032998922Z [inf]    [97m↳ Using npm package manager[0m
+2026-05-01T16:14:13.032999914Z [inf]              
+2026-05-01T16:14:13.033000901Z [inf]    [1mPackages[0m  
+2026-05-01T16:14:13.033001899Z [inf]    [38;5;238m──────────[0m
+2026-05-01T16:14:13.033003018Z [inf]    [95mnode[0m  [38;5;238m│[0m  [96m22.22.2[0m  [38;5;238m│[0m  railpack default (22)
+2026-05-01T16:14:13.033003723Z [inf]              
+2026-05-01T16:14:13.033004494Z [inf]    [1mSteps[0m     
+2026-05-01T16:14:13.033005050Z [inf]    [38;5;238m──────────[0m
+2026-05-01T16:14:13.033005669Z [inf]    [95m▸ install[0m
+2026-05-01T16:14:13.033006414Z [inf]      [38;5;245m$[0m [1mnpm ci[0m
+2026-05-01T16:14:13.033007299Z [inf]              
+2026-05-01T16:14:13.033007846Z [inf]    [1mDeploy[0m    
+2026-05-01T16:14:13.033010191Z [inf]    [38;5;238m──────────[0m
+2026-05-01T16:14:13.033011449Z [inf]      [38;5;245m$[0m [1mnode server.js[0m
+2026-05-01T16:14:13.033012227Z [inf]  
+2026-05-01T16:14:13.094369802Z [inf]  resolve image config for docker-image://ghcr.io/railwayapp/railpack-frontend:v0.23.0
+2026-05-01T16:14:13.248865184Z [inf]  resolve image config for docker-image://ghcr.io/railwayapp/railpack-frontend:v0.23.0
+2026-05-01T16:14:13.248942378Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.23.0@sha256:ba4c430961d9ee3215c64807727a4b11e2198daac31250e9db9eaf9cee4624d6
+2026-05-01T16:14:13.248943343Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.23.0@sha256:ba4c430961d9ee3215c64807727a4b11e2198daac31250e9db9eaf9cee4624d6
+2026-05-01T16:14:13.248943781Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.23.0@sha256:ba4c430961d9ee3215c64807727a4b11e2198daac31250e9db9eaf9cee4624d6
+2026-05-01T16:14:13.364365729Z [inf]  load build definition from ./railpack-plan.json
+2026-05-01T16:14:13.364443976Z [inf]  load build definition from ./railpack-plan.json
+2026-05-01T16:14:13.365768566Z [inf]  load build definition from ./railpack-plan.json
+2026-05-01T16:14:13.378175716Z [inf]  load build definition from ./railpack-plan.json
+2026-05-01T16:14:13.394331458Z [inf]  copy /etc/mise/config.toml
+2026-05-01T16:14:13.394332480Z [inf]  copy /usr/local/bin/mise
+2026-05-01T16:14:13.394332988Z [inf]  copy /mise/installs
+2026-05-01T16:14:13.394333661Z [inf]  loading .
+2026-05-01T16:14:13.394334175Z [inf]  install mise packages: node
+2026-05-01T16:14:13.394334669Z [inf]  mkdir -p /app/node_modules/.cache
+2026-05-01T16:14:13.394335141Z [inf]  mkdir /etc/mise
+2026-05-01T16:14:13.394335843Z [inf]  copy package-lock.json
+2026-05-01T16:14:13.394336405Z [inf]  install apt packages: libatomic1
+2026-05-01T16:14:13.394337159Z [inf]  copy package.json
+2026-05-01T16:14:13.394338048Z [inf]  npm ci
+2026-05-01T16:14:13.394338613Z [inf]  copy /root/.local/state/mise
+2026-05-01T16:14:13.394340250Z [inf]  create mise config
+2026-05-01T16:14:13.394340578Z [inf]  copy /mise/shims
+2026-05-01T16:14:13.394341123Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:mise-2026.3.17
+2026-05-01T16:14:13.394341708Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:mise-2026.3.17
+2026-05-01T16:14:13.394342209Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:mise-2026.3.17
+2026-05-01T16:14:13.394342746Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:mise-2026.3.17
+2026-05-01T16:14:13.394360367Z [inf]  [railpack] merge $packages:apt:runtime, $packages:mise, $build, $build
+2026-05-01T16:14:13.394360962Z [inf]  copy /app
+2026-05-01T16:14:13.394361517Z [inf]  copy /root/.cache
+2026-05-01T16:14:13.394362168Z [inf]  copy /app/node_modules
+2026-05-01T16:14:13.394362686Z [inf]  copy / /app
+2026-05-01T16:14:13.394505963Z [inf]  loading .
+2026-05-01T16:14:13.418777689Z [inf]  loading .
+2026-05-01T16:14:13.457055941Z [inf]  loading .
+2026-05-01T16:14:13.469415728Z [inf]  mkdir /etc/mise
+2026-05-01T16:14:13.469416955Z [inf]  create mise config
+2026-05-01T16:14:13.469417535Z [inf]  install mise packages: node
+2026-05-01T16:14:13.469418166Z [inf]  mkdir -p /app/node_modules/.cache
+2026-05-01T16:14:13.469419070Z [inf]  copy package-lock.json
+2026-05-01T16:14:13.469419548Z [inf]  copy package.json
+2026-05-01T16:14:13.469420248Z [inf]  npm ci
+2026-05-01T16:14:13.469426436Z [inf]  copy / /app
+2026-05-01T16:14:13.976874689Z [inf]  copy / /app
+2026-05-01T16:14:15.562762356Z [inf]  copy /root/.cache
+2026-05-01T16:14:15.562763032Z [inf]  copy /app/node_modules
+2026-05-01T16:14:15.562763546Z [inf]  copy /mise/shims
+2026-05-01T16:14:15.562764116Z [inf]  copy /mise/installs
+2026-05-01T16:14:15.562764630Z [inf]  copy /usr/local/bin/mise
+2026-05-01T16:14:15.562765233Z [inf]  copy /etc/mise/config.toml
+2026-05-01T16:14:15.562765535Z [inf]  copy /root/.local/state/mise
+2026-05-01T16:14:15.562769027Z [inf]  copy /root/.local/state/mise
+2026-05-01T16:14:15.562791216Z [inf]  install apt packages: libatomic1
+2026-05-01T16:14:15.562791739Z [inf]  copy /app
+2026-05-01T16:14:15.562794554Z [inf]  install apt packages: libatomic1
+2026-05-01T16:14:15.822376569Z [inf]  copy /app
+2026-05-01T16:14:15.827972464Z [inf]  [railpack] merge $packages:apt:runtime, $packages:mise, $build, $build
+2026-05-01T16:14:15.857140898Z [inf]  [railpack] merge $packages:apt:runtime, $packages:mise, $build, $build
+2026-05-01T16:14:15.864747691Z [inf]  exporting to docker image format
+2026-05-01T16:14:16.356135928Z [inf]  exporting to docker image format
+2026-05-01T16:14:16.404161642Z [inf]  containerimage.config.digest: sha256:a7bf1bee63842a4cd61de04a46cc0c2cb865a6515fa7e7441003de78010df890
+2026-05-01T16:14:16.404163690Z [inf]  containerimage.digest: sha256:bd6754ccd23250c45761b74c31f8349b24eb4f22b90031a329347c0caca6b66c
+2026-05-01T16:14:16.404165320Z [inf]  containerimage.descriptor: eyJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLm1hbmlmZXN0LnYxK2pzb24iLCJkaWdlc3QiOiJzaGEyNTY6YmQ2NzU0Y2NkMjMyNTBjNDU3NjFiNzRjMzFmODM0OWIyNGViNGYyMmI5MDAzMWEzMjkzNDdjMGNhY2E2YjY2YyIsInNpemUiOjIzODQsImFubm90YXRpb25zIjp7Im9yZy5vcGVuY29udGFpbmVycy5pbWFnZS5jcmVhdGVkIjoiMjAyNi0wNS0wMVQxNjoxNDoxNVoifSwicGxhdGZvcm0iOnsiYXJjaGl0ZWN0dXJlIjoiYW1kNjQiLCJvcyI6ImxpbnV4In19
+2026-05-01T16:14:31.693942741Z [inf]  image push
+2026-05-01T16:14:31.693980827Z [inf]  image push
+2026-05-01T16:14:39.015853248Z [inf]  
+2026-05-01T16:14:39.015856691Z [inf]  [35m====================
+Starting Healthcheck
+====================
+[0m
+2026-05-01T16:14:39.015857602Z [inf]  [37mPath: /api/health[0m
+2026-05-01T16:14:39.015858531Z [inf]  [37mRetry window: 5m0s[0m
+2026-05-01T16:14:39.015859395Z [inf]  
+2026-05-01T16:14:39.164929213Z [inf]  [92m[1/1] Healthcheck succeeded![0m

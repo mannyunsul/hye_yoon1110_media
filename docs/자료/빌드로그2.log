@@ -1,0 +1,271 @@
+2026-05-01T16:19:41.112373050Z [inf]  scheduling build on Metal builder "production-builderv3-us-west1-0hwp"
+2026-05-01T16:19:42.159852768Z [inf]  unpacking archive
+2026-05-01T16:19:42.214255338Z [inf]  uploading snapshot
+2026-05-01T16:19:42.281668089Z [inf]  [internal] load build definition from backend/Dockerfile
+2026-05-01T16:19:42.281668941Z [inf]  [internal] load build definition from backend/Dockerfile
+2026-05-01T16:19:42.281672405Z [inf]  [internal] load build definition from backend/Dockerfile
+2026-05-01T16:19:42.282344489Z [inf]  [internal] load build definition from backend/Dockerfile
+2026-05-01T16:19:42.295152552Z [inf]  [internal] load build definition from backend/Dockerfile
+2026-05-01T16:19:42.299892532Z [inf]  [internal] load metadata for docker.io/library/node:22-slim
+2026-05-01T16:19:42.432945433Z [inf]  [internal] load metadata for docker.io/library/node:22-slim
+2026-05-01T16:19:42.433447333Z [inf]  [internal] load .dockerignore
+2026-05-01T16:19:42.433451075Z [inf]  [internal] load .dockerignore
+2026-05-01T16:19:42.433627259Z [inf]  [internal] load .dockerignore
+2026-05-01T16:19:42.445337667Z [inf]  [internal] load .dockerignore
+2026-05-01T16:19:42.451021001Z [inf]  [6/6] COPY . .
+2026-05-01T16:19:42.451022294Z [inf]  [5/6] RUN npm ci
+2026-05-01T16:19:42.451022992Z [inf]  [4/6] COPY package*.json ./
+2026-05-01T16:19:42.451023807Z [inf]  [internal] load build context
+2026-05-01T16:19:42.451024421Z [inf]  [3/6] WORKDIR /app
+2026-05-01T16:19:42.451025080Z [inf]  [2/6] RUN apt-get update && apt-get install -y curl &&     curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp &&     chmod +x /usr/local/bin/yt-dlp &&     apt-get clean && rm -rf /var/lib/apt/lists/*
+2026-05-01T16:19:42.451025944Z [inf]  [1/6] FROM docker.io/library/node:22-slim@sha256:d415caac2f1f77b98caaf9415c5f807e14bc8d7bdea62561ea2fef4fbd08a73c
+2026-05-01T16:19:42.451048274Z [inf]  [1/6] FROM docker.io/library/node:22-slim@sha256:d415caac2f1f77b98caaf9415c5f807e14bc8d7bdea62561ea2fef4fbd08a73c
+2026-05-01T16:19:42.451182113Z [inf]  [internal] load build context
+2026-05-01T16:19:42.452335899Z [inf]  [internal] load build context
+2026-05-01T16:19:42.462862818Z [inf]  [1/6] FROM docker.io/library/node:22-slim@sha256:d415caac2f1f77b98caaf9415c5f807e14bc8d7bdea62561ea2fef4fbd08a73c
+2026-05-01T16:19:42.465266743Z [inf]  [1/6] FROM docker.io/library/node:22-slim@sha256:d415caac2f1f77b98caaf9415c5f807e14bc8d7bdea62561ea2fef4fbd08a73c
+2026-05-01T16:19:42.465338372Z [inf]  [2/6] RUN apt-get update && apt-get install -y curl &&     curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp &&     chmod +x /usr/local/bin/yt-dlp &&     apt-get clean && rm -rf /var/lib/apt/lists/*
+2026-05-01T16:19:42.515869780Z [inf]  [internal] load build context
+2026-05-01T16:19:42.62473303Z [inf]  Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]
+
+2026-05-01T16:19:42.648514662Z [inf]  Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+
+2026-05-01T16:19:42.659943591Z [inf]  Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [48.0 kB]
+
+2026-05-01T16:19:42.70825587Z [inf]  Get:4 http://deb.debian.org/debian bookworm/main amd64 Packages [8792 kB]
+
+2026-05-01T16:19:42.773311307Z [inf]  Get:5 http://deb.debian.org/debian bookworm-updates/main amd64 Packages [6924 B]
+
+2026-05-01T16:19:42.787745592Z [inf]  Get:6 http://deb.debian.org/debian-security bookworm-security/main amd64 Packages [297 kB]
+
+2026-05-01T16:19:43.566500188Z [inf]  Fetched 9350 kB in 1s (9899 kB/s)
+Reading package lists...
+2026-05-01T16:19:43.981982593Z [inf]  
+2026-05-01T16:19:44.004058657Z [inf]  Reading package lists...
+2026-05-01T16:19:44.4543766Z [inf]  Building dependency tree...
+2026-05-01T16:19:44.566288067Z [inf]  
+Reading state information...
+2026-05-01T16:19:44.709762197Z [inf]  The following additional packages will be installed:
+
+2026-05-01T16:19:44.710021648Z [inf]    ca-certificates krb5-locales libbrotli1 libcurl4 libgssapi-krb5-2
+  libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0 libldap-2.5-0
+
+2026-05-01T16:19:44.710289548Z [inf]    libldap-common libnghttp2-14 libpsl5 librtmp1 libsasl2-2 libsasl2-modules
+
+2026-05-01T16:19:44.710659477Z [inf]    libsasl2-modules-db libssh2-1 libssl3 openssl publicsuffix
+
+2026-05-01T16:19:44.71168277Z [inf]  Suggested packages:
+  krb5-doc krb5-user libsasl2-modules-gssapi-mit
+  | libsasl2-modules-gssapi-heimdal libsasl2-modules-ldap libsasl2-modules-otp
+  libsasl2-modules-sql
+
+2026-05-01T16:19:44.841924299Z [inf]  The following NEW packages will be installed:
+
+2026-05-01T16:19:44.842190672Z [inf]    ca-certificates curl krb5-locales libbrotli1 libcurl4 libgssapi-krb5-2
+  libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0 libldap-2.5-0
+
+2026-05-01T16:19:44.842467352Z [inf]    libldap-common libnghttp2-14 libpsl5 librtmp1 libsasl2-2 libsasl2-modules
+
+2026-05-01T16:19:44.842757512Z [inf]    libsasl2-modules-db libssh2-1 libssl3 openssl publicsuffix
+
+2026-05-01T16:19:44.873864805Z [inf]  0 upgraded, 22 newly installed, 0 to remove and 0 not upgraded.
+Need to get 6116 kB of archives.
+After this operation, 15.7 MB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian-security bookworm-security/main amd64 libssl3 amd64 3.0.19-1~deb12u2 [2032 kB]
+
+2026-05-01T16:19:44.921043045Z [inf]  Get:2 http://deb.debian.org/debian-security bookworm-security/main amd64 openssl amd64 3.0.19-1~deb12u2 [1435 kB]
+
+2026-05-01T16:19:44.923988553Z [inf]  Get:3 http://deb.debian.org/debian bookworm/main amd64 ca-certificates all 20230311+deb12u1 [155 kB]
+
+2026-05-01T16:19:44.924742318Z [inf]  Get:4 http://deb.debian.org/debian bookworm/main amd64 krb5-locales all 1.20.1-2+deb12u4 [63.4 kB]
+
+2026-05-01T16:19:44.925124446Z [inf]  Get:5 http://deb.debian.org/debian bookworm/main amd64 libbrotli1 amd64 1.0.9-2+b6 [275 kB]
+
+2026-05-01T16:19:44.926134856Z [inf]  Get:6 http://deb.debian.org/debian bookworm/main amd64 libkrb5support0 amd64 1.20.1-2+deb12u4 [33.2 kB]
+
+2026-05-01T16:19:44.926375915Z [inf]  Get:7 http://deb.debian.org/debian bookworm/main amd64 libk5crypto3 amd64 1.20.1-2+deb12u4 [79.8 kB]
+
+2026-05-01T16:19:44.926786437Z [inf]  Get:8 http://deb.debian.org/debian bookworm/main amd64 libkeyutils1 amd64 1.6.3-2 [8808 B]
+
+2026-05-01T16:19:44.926862474Z [inf]  Get:9 http://deb.debian.org/debian bookworm/main amd64 libkrb5-3 amd64 1.20.1-2+deb12u4 [334 kB]
+
+2026-05-01T16:19:44.928945414Z [inf]  Get:10 http://deb.debian.org/debian bookworm/main amd64 libgssapi-krb5-2 amd64 1.20.1-2+deb12u4 [135 kB]
+
+2026-05-01T16:19:44.929518733Z [inf]  Get:11 http://deb.debian.org/debian bookworm/main amd64 libsasl2-modules-db amd64 2.1.28+dfsg-10 [20.3 kB]
+
+2026-05-01T16:19:44.934672278Z [inf]  Get:12 http://deb.debian.org/debian bookworm/main amd64 libsasl2-2 amd64 2.1.28+dfsg-10 [59.7 kB]
+
+2026-05-01T16:19:44.935293427Z [inf]  Get:13 http://deb.debian.org/debian bookworm/main amd64 libldap-2.5-0 amd64 2.5.13+dfsg-5 [183 kB]
+
+2026-05-01T16:19:44.936570277Z [inf]  Get:15 http://deb.debian.org/debian bookworm/main amd64 libpsl5 amd64 0.21.2-1 [58.7 kB]
+
+2026-05-01T16:19:44.937010087Z [inf]  Get:16 http://deb.debian.org/debian bookworm/main amd64 librtmp1 amd64 2.4+20151223.gitfa8646d.1-2+b2 [60.8 kB]
+
+2026-05-01T16:19:44.941724397Z [inf]  Get:19 http://deb.debian.org/debian bookworm/main amd64 curl amd64 7.88.1-10+deb12u14 [316 kB]
+
+2026-05-01T16:19:44.943004081Z [inf]  Get:20 http://deb.debian.org/debian bookworm/main amd64 libldap-common all 2.5.13+dfsg-5 [29.3 kB]
+
+2026-05-01T16:19:44.943181194Z [inf]  Get:21 http://deb.debian.org/debian bookworm/main amd64 libsasl2-modules amd64 2.1.28+dfsg-10 [66.6 kB]
+
+2026-05-01T16:19:44.948127881Z [inf]  Get:22 http://deb.debian.org/debian bookworm/main amd64 publicsuffix all 20230209.2326-1 [126 kB]
+
+2026-05-01T16:19:45.087602834Z [inf]  debconf: delaying package configuration, since apt-utils is not installed
+
+2026-05-01T16:19:45.140899723Z [inf]  Selecting previously unselected package libssl3:amd64.
+(Reading database ... 
+2026-05-01T16:19:45.14164897Z [inf]  (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%
+2026-05-01T16:19:45.154539976Z [inf]  (Reading database ... 80%
+2026-05-01T16:19:45.169627125Z [inf]  (Reading database ... 90%
+2026-05-01T16:19:45.175206651Z [inf]  (Reading database ... 95%
+2026-05-01T16:19:45.183402407Z [inf]  (Reading database ... 100%(Reading database ... 6096 files and directories currently installed.)
+
+2026-05-01T16:19:45.183791568Z [inf]  Preparing to unpack .../00-libssl3_3.0.19-1~deb12u2_amd64.deb ...
+
+2026-05-01T16:19:45.190419948Z [inf]  Unpacking libssl3:amd64 (3.0.19-1~deb12u2) ...
+
+2026-05-01T16:19:45.32536401Z [inf]  Selecting previously unselected package openssl.
+
+2026-05-01T16:19:45.326017278Z [inf]  Preparing to unpack .../01-openssl_3.0.19-1~deb12u2_amd64.deb ...
+
+2026-05-01T16:19:45.439463105Z [inf]  Selecting previously unselected package ca-certificates.
+
+2026-05-01T16:19:45.440236648Z [inf]  Preparing to unpack .../02-ca-certificates_20230311+deb12u1_all.deb ...
+
+2026-05-01T16:19:45.479993865Z [inf]  Selecting previously unselected package krb5-locales.
+
+2026-05-01T16:19:45.48069609Z [inf]  Preparing to unpack .../03-krb5-locales_1.20.1-2+deb12u4_all.deb ...
+
+2026-05-01T16:19:45.483091687Z [inf]  Unpacking krb5-locales (1.20.1-2+deb12u4) ...
+
+2026-05-01T16:19:45.509690993Z [inf]  Preparing to unpack .../04-libbrotli1_1.0.9-2+b6_amd64.deb ...
+
+2026-05-01T16:19:45.512354108Z [inf]  Unpacking libbrotli1:amd64 (1.0.9-2+b6) ...
+
+2026-05-01T16:19:45.553372121Z [inf]  Selecting previously unselected package libkrb5support0:amd64.
+
+2026-05-01T16:19:45.553877196Z [inf]  Preparing to unpack .../05-libkrb5support0_1.20.1-2+deb12u4_amd64.deb ...
+
+2026-05-01T16:19:45.556609747Z [inf]  Unpacking libkrb5support0:amd64 (1.20.1-2+deb12u4) ...
+
+2026-05-01T16:19:45.584290789Z [inf]  Selecting previously unselected package libk5crypto3:amd64.
+
+2026-05-01T16:19:45.584851791Z [inf]  Preparing to unpack .../06-libk5crypto3_1.20.1-2+deb12u4_amd64.deb ...
+
+2026-05-01T16:19:45.587951023Z [inf]  Unpacking libk5crypto3:amd64 (1.20.1-2+deb12u4) ...
+
+2026-05-01T16:19:45.61617175Z [inf]  Selecting previously unselected package libkeyutils1:amd64.
+
+2026-05-01T16:19:45.616708585Z [inf]  Preparing to unpack .../07-libkeyutils1_1.6.3-2_amd64.deb ...
+
+2026-05-01T16:19:45.619561824Z [inf]  Unpacking libkeyutils1:amd64 (1.6.3-2) ...
+
+2026-05-01T16:19:45.64229803Z [inf]  Selecting previously unselected package libkrb5-3:amd64.
+
+2026-05-01T16:19:45.64283934Z [inf]  Preparing to unpack .../08-libkrb5-3_1.20.1-2+deb12u4_amd64.deb ...
+
+2026-05-01T16:19:45.645642931Z [inf]  Unpacking libkrb5-3:amd64 (1.20.1-2+deb12u4) ...
+
+2026-05-01T16:19:45.694230918Z [inf]  Selecting previously unselected package libgssapi-krb5-2:amd64.
+
+2026-05-01T16:19:45.694680422Z [inf]  Preparing to unpack .../09-libgssapi-krb5-2_1.20.1-2+deb12u4_amd64.deb ...
+
+2026-05-01T16:19:45.6974439Z [inf]  Unpacking libgssapi-krb5-2:amd64 (1.20.1-2+deb12u4) ...
+
+2026-05-01T16:19:45.725812212Z [inf]  Selecting previously unselected package libsasl2-modules-db:amd64.
+
+2026-05-01T16:19:45.726350797Z [inf]  Preparing to unpack .../10-libsasl2-modules-db_2.1.28+dfsg-10_amd64.deb ...
+
+2026-05-01T16:19:45.728920946Z [inf]  Unpacking libsasl2-modules-db:amd64 (2.1.28+dfsg-10) ...
+
+2026-05-01T16:19:45.751532875Z [inf]  Selecting previously unselected package libsasl2-2:amd64.
+
+2026-05-01T16:19:45.752017789Z [inf]  Preparing to unpack .../11-libsasl2-2_2.1.28+dfsg-10_amd64.deb ...
+
+2026-05-01T16:19:45.783841525Z [inf]  Selecting previously unselected package libldap-2.5-0:amd64.
+
+2026-05-01T16:19:45.784306776Z [inf]  Preparing to unpack .../12-libldap-2.5-0_2.5.13+dfsg-5_amd64.deb ...
+
+2026-05-01T16:19:45.821869781Z [inf]  Selecting previously unselected package libnghttp2-14:amd64.
+
+2026-05-01T16:19:45.822381109Z [inf]  Preparing to unpack .../13-libnghttp2-14_1.52.0-1+deb12u2_amd64.deb ...
+
+2026-05-01T16:19:45.88150784Z [inf]  Selecting previously unselected package librtmp1:amd64.
+
+2026-05-01T16:19:45.911809344Z [inf]  Selecting previously unselected package libssh2-1:amd64.
+
+2026-05-01T16:19:45.915091243Z [inf]  Unpacking libssh2-1:amd64 (1.10.0-3+b1) ...
+
+2026-05-01T16:19:45.949806079Z [inf]  Selecting previously unselected package libcurl4:amd64.
+
+2026-05-01T16:19:45.953022976Z [inf]  Unpacking libcurl4:amd64 (7.88.1-10+deb12u14) ...
+
+2026-05-01T16:19:45.992851374Z [inf]  Selecting previously unselected package curl.
+
+2026-05-01T16:19:45.993247684Z [inf]  Preparing to unpack .../18-curl_7.88.1-10+deb12u14_amd64.deb ...
+
+2026-05-01T16:19:46.03341687Z [inf]  Selecting previously unselected package libldap-common.
+
+2026-05-01T16:19:46.033909648Z [inf]  Preparing to unpack .../19-libldap-common_2.5.13+dfsg-5_all.deb ...
+
+2026-05-01T16:19:46.074889422Z [inf]  Unpacking libsasl2-modules:amd64 (2.1.28+dfsg-10) ...
+
+2026-05-01T16:19:46.102854745Z [inf]  Preparing to unpack .../21-publicsuffix_20230209.2326-1_all.deb ...
+
+2026-05-01T16:19:46.105659272Z [inf]  Unpacking publicsuffix (20230209.2326-1) ...
+
+2026-05-01T16:19:46.142731331Z [inf]  Setting up libkeyutils1:amd64 (1.6.3-2) ...
+
+2026-05-01T16:19:46.152032848Z [inf]  Setting up libpsl5:amd64 (0.21.2-1) ...
+
+2026-05-01T16:19:46.169298884Z [inf]  Setting up libssl3:amd64 (3.0.19-1~deb12u2) ...
+
+2026-05-01T16:19:46.1767534Z [inf]  Setting up libnghttp2-14:amd64 (1.52.0-1+deb12u2) ...
+
+2026-05-01T16:19:46.204390736Z [inf]  Setting up libkrb5support0:amd64 (1.20.1-2+deb12u4) ...
+
+2026-05-01T16:19:46.222206941Z [inf]  Setting up librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2+b2) ...
+
+2026-05-01T16:19:46.239989822Z [inf]  Setting up libsasl2-2:amd64 (2.1.28+dfsg-10) ...
+
+2026-05-01T16:19:46.248602186Z [inf]  Setting up libssh2-1:amd64 (1.10.0-3+b1) ...
+
+2026-05-01T16:19:46.257462623Z [inf]  Setting up libkrb5-3:amd64 (1.20.1-2+deb12u4) ...
+
+2026-05-01T16:19:46.266474172Z [inf]  Setting up openssl (3.0.19-1~deb12u2) ...
+
+2026-05-01T16:19:46.305323315Z [inf]  Setting up ca-certificates (20230311+deb12u1) ...
+
+2026-05-01T16:19:46.381052644Z [inf]  debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+
+2026-05-01T16:19:46.748269428Z [inf]  Updating certificates in /etc/ssl/certs...
+
+2026-05-01T16:19:47.360785169Z [inf]  Processing triggers for libc-bin (2.36-9+deb12u13) ...
+
+2026-05-01T16:19:47.425177924Z [inf]  Processing triggers for ca-certificates (20230311+deb12u1) ...
+
+2026-05-01T16:19:47.432433807Z [inf]  Updating certificates in /etc/ssl/certs...
+
+2026-05-01T16:19:47.847969158Z [inf]  0 added, 0 removed; done.
+Running hooks in /etc/ca-certificates/update.d...
+
+2026-05-01T16:19:47.850089089Z [inf]  done.
+
+2026-05-01T16:19:48.341875218Z [inf]  100 3129k  100 3129k    0     0  6831k      0 --:--:-- --:--:-- --:--:-- 6831k
+
+2026-05-01T16:19:48.439043646Z [inf]  [3/6] WORKDIR /app
+2026-05-01T16:19:48.483621297Z [inf]  [5/6] RUN npm ci
+2026-05-01T16:19:50.916619217Z [inf]  
+found 0 vulnerabilities
+
+2026-05-01T16:19:51.008294023Z [inf]  [5/6] RUN npm ci
+2026-05-01T16:19:51.012330173Z [inf]  [6/6] COPY . .
+2026-05-01T16:19:51.058434866Z [inf]  [6/6] COPY . .
+2026-05-01T16:19:51.865105393Z [inf]  containerimage.descriptor: eyJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLm1hbmlmZXN0LnYxK2pzb24iLCJkaWdlc3QiOiJzaGEyNTY6YmE0NWNhOTJkYTNlZTJkY2NmNGY2Y2I0NWY5ZjQ0ODEzYTdhZDgxMWM0ODU2MmEyNzdiZGM1NjM0MmRlZDNjMiIsInNpemUiOjIxOTMsImFubm90YXRpb25zIjp7Im9yZy5vcGVuY29udGFpbmVycy5pbWFnZS5jcmVhdGVkIjoiMjAyNi0wNS0wMVQxNjoxOTo1MVoifSwicGxhdGZvcm0iOnsiYXJjaGl0ZWN0dXJlIjoiYW1kNjQiLCJvcyI6ImxpbnV4In19
+2026-05-01T16:19:51.865106361Z [inf]  containerimage.config.digest: sha256:a8172892f3750d13b08c8b6c5574e383c3e807bd414dcecd77d0ab04647fb299
+2026-05-01T16:19:51.865107419Z [inf]  containerimage.digest: sha256:ba45ca92da3ee2dccf4f6cb45f9f44813a7ad811c48562a277bdc56342ded3c2
+2026-05-01T16:20:07.230512146Z [inf]  image push
+2026-05-01T16:20:13.538031416Z [inf]  [37mPath: /api/health[0m
+2026-05-01T16:20:13.538032628Z [inf]  
+2026-05-01T16:20:14.057073078Z [inf]  [92m[1/1] Healthcheck succeeded![0m
