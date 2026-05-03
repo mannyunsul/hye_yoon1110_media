@@ -1,14 +1,15 @@
 # 미디어 매니저 앱 설계 문서
 
-**작성일**: 2026-04-20  
-**상태**: 승인됨
+**최초 작성**: 2026-04-20
+**최종 업데이트**: 2026-05-03
+**상태**: 구현 완료 (현재 코드 기준 갱신)
 
 ---
 
 ## 1. 프로젝트 개요
 
-SNS에서 이미지/영상을 다운로드하거나 URL만 북마크로 저장하고, 기기 갤러리의 미디어까지 통합 관리하는 모바일 앱.  
-태그, 출처 URL, 플랫폼 정보를 메타데이터로 관리하며 OneDrive를 통해 자동 백업된다.
+SNS에서 이미지/영상을 다운로드하거나 URL만 북마크로 저장하고, 기기 갤러리의 미디어까지 통합 관리하는 모바일 앱.
+태그, 출처 URL, 플랫폼 정보를 메타데이터로 관리하며 JSON 파일로 수동 백업한다.
 
 ---
 
@@ -18,9 +19,9 @@ SNS에서 이미지/영상을 다운로드하거나 URL만 북마크로 저장�
 |---|---|
 | 모바일 앱 | Quasar Framework (Vue 3) + Capacitor |
 | 백엔드 | Node.js + yt-dlp (Railway 호스팅) |
-| 로컬 DB | SQLite (Capacitor SQLite 플러그인) |
-| 클라우드 백업 | Microsoft OneDrive (Graph API) |
-| 미디어 저장 | 기기 갤러리 → OneDrive 자동 백업 (기존 설정) |
+| 로컬 DB | SQLite (@capacitor-community/sqlite) |
+| 백업 | JSON 수동 내보내기/가져오기 |
+| SNS 인증 | Capacitor WebAuth 네이티브 플러그인 (Instagram / X) |
 
 ---
 
@@ -42,25 +43,18 @@ SNS에서 이미지/영상을 다운로드하거나 URL만 북마크로 저장�
 └────────────┬────────────────────────┘
              │ API 호출
              ▼
-┌─────────────────────┐
-│  백엔드 (Railway)    │
-│  Node.js + yt-dlp   │
-│  - 미디어 URL 추출   │
-│  - 프록시 스트리밍   │
-└─────────────────────┘
+┌─────────────────────────────────────┐
+│  백엔드 (Railway)                    │
+│  Node.js + yt-dlp                   │
+│  - 미디어 URL 추출 (플랫폼별 전략)   │
+│  - Instagram 4단계 fallback          │
+│  - 미디어 프록시 스트리밍            │
+└─────────────────────────────────────┘
 
 ┌──────────────────────────┐
 │  기기 저장소              │
-│  - 갤러리 (이미지/영상)   │ ──→ OneDrive 자동 백업 (기존)
-│  - 앱 내부 캐시 (썸네일)  │
+│  - 갤러리 (이미지/영상)   │
 │  - SQLite (메타데이터)    │
-└──────────────────────────┘
-             │ 자동 동기화 (Graph API)
-             ▼
-┌──────────────────────────┐
-│  OneDrive                │
-│  /MediaManager/          │
-│    metadata.json         │
 └──────────────────────────┘
 ```
 
@@ -70,7 +64,8 @@ SNS에서 이미지/영상을 다운로드하거나 URL만 북마크로 저장�
 
 ### 역할
 - yt-dlp로 SNS URL에서 미디어 직접 URL 추출
-- 미디어 프록시 스트리밍
+- Instagram 전용 이미지 추출 (4단계 fallback)
+- 미디어 프록시 스트리밍 (다운로드 시 IP 불일치 우회)
 - 플랫폼 자동 감지
 
 ### API 엔드포인트
@@ -81,7 +76,12 @@ SNS에서 이미지/영상을 다운로드하거나 URL만 북마크로 저장�
 | `/api/proxy` | GET | 미디어 프록시 스트리밍 |
 | `/api/health` | GET | 서버 상태 확인 |
 
-### 응답 형식
+**`/api/fetch` 요청 형식:**
+```json
+{ "url": "https://instagram.com/p/xxx", "cookies": "sessionid=abc; csrftoken=..." }
+```
+
+**`/api/fetch` 응답 형식:**
 ```json
 {
   "success": true,
@@ -89,19 +89,35 @@ SNS에서 이미지/영상을 다운로드하거나 URL만 북마크로 저장�
   "sourceUrl": "https://instagram.com/p/xxx",
   "media": [
     { "url": "...", "type": "image", "index": 0 },
-    { "url": "...", "type": "image", "index": 1 },
-    { "url": "...", "type": "image", "index": 2 }
+    { "url": "...", "type": "video", "index": 1 }
   ]
 }
 ```
 
-### 지원 플랫폼
-yt-dlp 기반으로 1000개 이상 사이트 자동 지원.  
-주요 플랫폼: Instagram, X(Twitter), TikTok, YouTube, Facebook 등
+### Instagram 이미지 추출 전략 (4단계 Fallback)
 
-### 주의사항
-- Instagram은 서버 IP 차단 가능 → 로그인 세션 연결 필요할 수 있음
-- yt-dlp는 URL 추출만 담당, 파일 다운로드는 앱에서 직접 수행 (서버 부하 최소화)
+yt-dlp가 Instagram 이미지를 추출하지 못하는 경우가 많아 전용 fallback 로직 구현:
+
+| 순서 | 방법 | 특징 |
+|---|---|---|
+| 1순위 | **Instagram Private API** (`/api/v1/media/shortcode/{code}/info/`) | 쿠키 필요, 캐러셀 전체 지원 |
+| 2순위 | **임베드 페이지 파싱** (`/p/{code}/embed/captioned/`) | 인증 불필요, `display_url` 추출 |
+| 3순위 | **직접 페이지 파싱** | `display_url` JSON 패턴 매칭 |
+| 4순위 | **`og:image` fallback** | 단일 이미지만 가능 |
+
+yt-dlp 실패 시 위 4단계를 순서대로 시도. 성공한 첫 번째 결과를 반환.
+
+### yt-dlp 미디어 타입 판별
+
+```js
+const isVideo = item.ext === 'mp4' || (item.vcodec && item.vcodec !== 'none');
+```
+`vcodec: 'none'`은 이미지를 의미 → image로 분류.
+
+### 지원 플랫폼
+yt-dlp 기반으로 1000개 이상 사이트 자동 지원.
+주요 플랫폼: Instagram (영상), X(Twitter), TikTok, YouTube 등.
+Instagram 이미지 전용 추출 로직 별도 구현.
 
 ---
 
@@ -109,121 +125,133 @@ yt-dlp 기반으로 1000개 이상 사이트 자동 지원.
 
 하단 탭 4개 구성. **페이지 이동 없이 바텀 시트**로 상세 정보 표시.
 
-### 탭1 — 관리 목록
-- 상단 검색창
+### 탭1 — 관리 목록 (`/manage`)
+- 상단 검색창 (URL / 태그명 검색)
 - 가로 스크롤 태그 필터바 (사용 빈도순 정렬) + 全 버튼
-- 플랫폼 필터 (전체 / Instagram / X / TikTok / ...)
+- 플랫폼 필터 칩 (전체 / 📸 IG / ✖ X / 🎵 TT / ▶ YT)
 - 갤러리 그리드 뷰 — **1 URL = 1 묶음 항목**으로 표시
-  - 대표 썸네일 (첫 번째 이미지) + 개수 뱃지 (예: `🖼️ 1/5`)
-  - 북마크 항목은 `🔖` 뱃지로 구분
-- **탭**: 바텀 시트 열림 (페이지 이동 없음)
+  - 대표 썸네일 (첫 번째 미디어) + 개수 뱃지
+- **탭**: 바텀 시트 열림
 - **롱프레스**: 빠른 메뉴 팝업 (출처 열기 / 태그 편집 / 전체 삭제)
-- 全 버튼 → 태그 전체 목록 (초성별 섹션 + 오른쪽 초성 바로가기, 개수 표시)
-
-> 초성 바로가기 UI는 실제 화면 보고 최종 확정 예정
+- 全 버튼 → 태그 전체 목록 (초성별 섹션 + 오른쪽 초성 바로가기 + 개수 + **삭제 버튼**)
 
 ### 바텀 시트 (관리 목록 항목 탭 시)
-- 현재 화면 위에 아래에서 위로 슬라이드 오픈 (페이지 이동 아님)
 - 미디어 좌우 스와이프 (carousel 전체 탐색)
-- 현재 인덱스 표시 (예: `2 / 5`)
-- 플랫폼 뱃지 + 출처 URL 바로가기 버튼
-- 태그 목록 + 태그 추가/삭제
+- 현재 인덱스 표시 (예: `← 스와이프로 N장 모두 확인 →`)
+- 플랫폼 뱃지 + 미디어 개수
 - **현재 미디어만 삭제** 버튼
-- 바깥 탭 또는 아래로 스와이프 → 닫힘
+- 마지막 항목 삭제 시 → 그룹 전체 자동 삭제
 
-### 탭2 — 미관리 목록
-- Capacitor MediaStore 플러그인으로 기기 갤러리 전체 파일 경로 스캔
-- SQLite media_items 테이블에 없는 filePath → 미관리 목록으로 표시
-- 탭 진입 시 스캔 실행 (앱 시작 시 백그라운드 스캔도 병행)
-- 선택 (다중 선택 가능) → 태그 입력 → 저장 → 관리 목록으로 이동, 미관리에서 제거
-- 관리 목록에서 태그 전부 삭제 시 다시 미관리로 복귀
+### 탭2 — 미관리 목록 (`/unmanaged`)
+- Capacitor MediaStore로 기기 갤러리 전체 파일 스캔
+- SQLite `media_items`에 없는 파일 → 미관리 목록 표시
+- 탭 진입 시 스캔 자동 실행
+- 탭하면 선택 표시, 상단 "태그 등록 (N)" 버튼으로 태그 입력 후 저장
 
-### 탭3 — 다운로드
-- **두 가지 모드** 선택:
-  - **다운로드 모드**: 갤러리에 파일 저장 + 메타데이터 등록
-  - **북마크 모드**: 파일 저장 없이 URL + 썸네일만 등록
-- URL 직접 입력 또는 다른 앱에서 공유받기 (공유 인텐트 처리)
-- 미디어 미리보기 (carousel은 좌우 스와이프)
-- 태그 및 출처 URL 자동 입력 (수정 가능)
+### 탭3 — 다운로드 (`/download`)
+- **두 가지 모드** 선택: 다운로드 / 북마크
+- URL 직접 입력 또는 다른 앱에서 공유받기 (Android SEND 인텐트 처리)
+- 미리보기 (carousel은 좌우 스와이프)
+- 태그 입력 후 저장
 
-### 탭4 — 설정
-- **OneDrive 연동** — 미연결/연결됨 두 가지 상태
-  - 미연결: "Microsoft 계정으로 연결" 버튼
-  - 연결됨: 계정 표시 + 자동 동기화 토글 + OneDrive 복원 버튼 + 연결 해제 버튼
-  - 연결 해제 후 다른 계정으로 재연결 가능, 로컬 데이터는 유지
-- **백업** — 수동 내보내기(JSON) / 가져오기
-- **사용 가이드** — 앱 주요 기능을 단계별로 설명하는 가이드 페이지로 이동
-
-> 백엔드 서버 URL은 앱 내 `config.js`에 하드코딩. 설정 화면에 노출하지 않음.
+### 탭4 — 설정 (`/settings`)
+- **계정 연결** — Instagram / X 로그인 (앱 내 WebView로 로그인 후 쿠키 저장)
+  - 로그인 상태: "연결됨" 뱃지 + "연결 해제" 버튼
+  - 비로그인 상태: "로그인" 버튼
+  - 저장된 쿠키는 미디어 fetch 요청 시 백엔드로 전달
+- **백업** — JSON 수동 내보내기/가져오기
+- **디버그** — 저장된 파일 확인 / 전체 삭제
+- **사용 가이드** — `/guide` 페이지로 이동
 
 ---
 
-## 6. 미디어 저장 방식
+## 6. SNS 인증 (WebAuth)
+
+Instagram/X 로그인 시 앱 내 WebView를 열어 사용자가 SNS 사이트에 로그인하면 쿠키를 추출하여 로컬에 저장한다.
+
+- **저장 위치**: `@capacitor/preferences` (`cookies_instagram`, `cookies_x`)
+- **사용 시점**: `/api/fetch` 호출 시 `cookies` 필드로 전달
+- **보안**: 네이티브 앱 내부 저장, 서버에 영구 저장하지 않음
+- **구현**: `WebAuth` 네이티브 Capacitor 플러그인 (`WebAuthActivity.java`)
+
+---
+
+## 7. 미디어 저장 방식
 
 | 유형 | 파일 저장 위치 | 썸네일 | 원본 접근 |
 |---|---|---|---|
-| 다운로드 | 기기 갤러리 | 갤러리 파일 사용 | 로컬 파일 |
-| 북마크 | 저장 안 함 | 앱 내부 캐시 (첫 장만) | 실시간 스트리밍 |
-| 갤러리 등록 | 기기 갤러리 (기존 파일) | 갤러리 파일 사용 | 로컬 파일 |
+| 다운로드 | 기기 갤러리 (`MediaManager/`) | 로컬 파일 | 로컬 파일 |
+| 북마크 | 첫 장만 `MediaManager/`에 저장 | 로컬 파일 | 백엔드 프록시 스트리밍 |
+| 갤러리 등록 | 기기 갤러리 (기존 파일) | 갤러리 파일 | 로컬 파일 |
 
-- 북마크 썸네일: 첫 번째 미디어만 앱 내부 캐시에 저장 (~5~20KB)
-- carousel 나머지 미디어: 바텀 시트에서 스와이프 시 실시간 스트리밍
+다운로드 시 직접 CDN → 앱 대신 백엔드 `/api/proxy`를 거쳐 다운로드 (IP 불일치 우회).
 
 ---
 
-## 7. 데이터 모델
+## 8. 데이터 모델
 
-### media_groups 테이블 (묶음 단위, 목록에 1행으로 표시)
+### media_groups 테이블
 ```sql
 CREATE TABLE media_groups (
-  id TEXT PRIMARY KEY,           -- UUID
-  sourceUrl TEXT,                -- 출처 URL (SNS 원본 링크)
+  id TEXT PRIMARY KEY,
+  sourceUrl TEXT,
   platform TEXT NOT NULL,        -- instagram | x | tiktok | youtube | camera | other
   mode TEXT NOT NULL,            -- download | bookmark | gallery
-  thumbnailPath TEXT,            -- 대표 썸네일 경로 (첫 번째 미디어)
-  totalCount INTEGER DEFAULT 1,  -- 전체 미디어 수
+  thumbnailPath TEXT,
+  totalCount INTEGER DEFAULT 1,
   createdAt TEXT NOT NULL,
   registeredAt TEXT NOT NULL
 );
 ```
 
-### media_items 테이블 (개별 미디어)
+### media_items 테이블
 ```sql
 CREATE TABLE media_items (
-  id TEXT PRIMARY KEY,           -- UUID
-  groupId TEXT NOT NULL REFERENCES media_groups(id) ON DELETE CASCADE,
-  filePath TEXT,                 -- 갤러리 파일 경로 (다운로드/갤러리 등록만)
-  remoteUrl TEXT,                -- 원격 URL (북마크 모드 스트리밍용)
+  id TEXT PRIMARY KEY,
+  groupId TEXT NOT NULL,
+  filePath TEXT,                 -- 다운로드/갤러리 등록만
+  remoteUrl TEXT,                -- 북마크 스트리밍용
   type TEXT NOT NULL,            -- image | video
-  itemIndex INTEGER NOT NULL,    -- carousel 내 순서 (0부터)
-  createdAt TEXT NOT NULL
+  itemIndex INTEGER NOT NULL,
+  createdAt TEXT NOT NULL,
+  FOREIGN KEY (groupId) REFERENCES media_groups(id) ON DELETE CASCADE
 );
 ```
+
+> **주의**: `PRAGMA foreign_keys`가 기본 OFF이므로 CASCADE가 자동 작동하지 않는다.
+> `deleteGroup`, `deleteTag` 등에서 수동으로 관련 레코드 삭제 처리.
 
 ### tags 테이블
 ```sql
 CREATE TABLE tags (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
-  count INTEGER DEFAULT 0,       -- 사용 중인 그룹 수
+  count INTEGER DEFAULT 0,       -- 현재 연결된 그룹 수
   createdAt TEXT NOT NULL
 );
 ```
 
-### group_tags 테이블 (그룹-태그 다대다)
+`count` 갱신 시점:
+- 그룹 생성 시 → 연결된 태그 count +1
+- 그룹 삭제 시 → 연결된 태그 count -1 (MAX 0)
+- 태그 편집 저장 시 → 추가된 태그 +1, 제거된 태그 -1
+
+### group_tags 테이블
 ```sql
 CREATE TABLE group_tags (
-  groupId TEXT NOT NULL REFERENCES media_groups(id) ON DELETE CASCADE,
-  tagId TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (groupId, tagId)
+  groupId TEXT NOT NULL,
+  tagId TEXT NOT NULL,
+  PRIMARY KEY (groupId, tagId),
+  FOREIGN KEY (groupId) REFERENCES media_groups(id) ON DELETE CASCADE,
+  FOREIGN KEY (tagId) REFERENCES tags(id) ON DELETE CASCADE
 );
 ```
 
-### OneDrive 백업 파일 (`/MediaManager/metadata.json`)
+### 백업 파일 형식 (JSON)
 ```json
 {
   "version": 2,
-  "exportedAt": "2026-04-20T10:00:00Z",
+  "exportedAt": "2026-05-03T10:00:00Z",
   "media_groups": [ ...groups 배열... ],
   "media_items": [ ...items 배열... ],
   "tags": [ ...tags 배열... ]
@@ -232,17 +260,28 @@ CREATE TABLE group_tags (
 
 ---
 
-## 8. 주요 흐름
+## 9. 태그 관리
+
+- **태그 전체 목록**: ManagePage의 全 버튼 → TagListSheet (우측 슬라이드)
+  - 초성별 섹션 분류 + 오른쪽 초성 바로가기
+  - 각 태그 행: 태그명 | count 뱃지 | 🗑️ 삭제 버튼
+- **태그 삭제 동작**:
+  - `count === 0`: 확인 없이 즉시 삭제
+  - `count > 0`: "'[태그명]' 태그가 N개 항목에서 제거됩니다. 삭제할까요?" 확인 후 삭제
+  - 삭제 시 해당 태그가 붙은 모든 항목에서 태그가 제거됨 (항목 자체는 유지)
+
+---
+
+## 10. 주요 흐름
 
 ### ① SNS 다운로드 (다운로드 모드)
 ```
-URL 입력 → 백엔드 /api/fetch 호출
-→ carousel 미리보기 (좌우 스와이프)
-→ 모드 선택: 다운로드
+URL 입력 → 백엔드 /api/fetch 호출 (쿠키 포함)
+→ carousel 미리보기
+→ 모드: 다운로드 선택
 → 태그 입력
-→ 전체 미디어 갤러리 저장
+→ /api/proxy 경유 갤러리 저장
 → media_groups + media_items SQLite 등록
-→ OneDrive 자동 동기화
 → 관리 목록에 1개 묶음으로 표시
 ```
 
@@ -250,95 +289,68 @@ URL 입력 → 백엔드 /api/fetch 호출
 ```
 URL 입력 → 백엔드 /api/fetch 호출
 → carousel 미리보기
-→ 모드 선택: 북마크
+→ 모드: 북마크 선택
 → 태그 입력
-→ 첫 번째 썸네일만 앱 내부 캐시 저장
-→ media_groups + media_items (remoteUrl만) SQLite 등록
-→ OneDrive 자동 동기화
-→ 관리 목록에 1개 묶음 (🔖 뱃지)으로 표시
+→ 첫 번째 썸네일만 /api/proxy 경유 저장
+→ media_groups + media_items (remoteUrl) SQLite 등록
+→ 관리 목록에 1개 묶음 표시
 ```
 
 ### ③ 공유받기 (다른 앱 → 우리 앱)
 ```
-SNS 앱에서 공유 → 우리 앱 선택
-→ URL 자동 캡처 + 다운로드 화면 오픈
-→ ① 또는 ② 흐름과 동일하게 진행
+SNS 앱에서 공유 → 우리 앱 선택 (Android SEND 인텐트)
+→ ShareReceiverPlugin이 URL 캡처
+→ 다운로드 화면 자동 오픈 + URL 자동 입력
+→ ① 또는 ② 흐름과 동일
 ```
 
 ### ④ 미관리 → 관리 등록
 ```
-미관리 목록에서 미디어 선택 (다중 선택 가능)
-→ 태그 입력 (출처 URL 선택적 입력)
-→ 저장 → 관리 목록으로 이동
-→ 미관리 목록에서 제거
-→ OneDrive 자동 동기화
+미관리 목록 탭 진입 → 갤러리 스캔
+→ 미등록 사진/영상 표시
+→ 항목 탭으로 다중 선택
+→ 태그 입력 후 저장
+→ 관리 목록에 추가, 미관리 목록에서 제거
 ```
 
 ### ⑤ 바텀 시트 조작
 ```
 목록 항목 탭 → 바텀 시트 오픈
 → 좌우 스와이프로 carousel 탐색
-→ 출처 URL 탭 → SNS 앱 오픈
-→ 현재 미디어만 삭제 → media_items에서 제거, totalCount 갱신
-→ 마지막 항목 삭제 시 → media_groups도 제거, 목록에서 사라짐
-→ 바깥 탭 / 아래 스와이프 → 닫힘
+→ 현재 미디어만 삭제 → totalCount 갱신
+→ 마지막 항목 삭제 시 → 그룹 전체 삭제
 ```
 
 ### ⑥ 롱프레스 빠른 메뉴
 ```
 목록 항목 롱프레스 → 팝업 메뉴
-→ 출처 열기: SNS 앱 오픈
-→ 태그 편집: 태그 수정 다이얼로그
-→ 전체 삭제: media_groups + 하위 media_items 전체 삭제
+→ 출처 열기: SNS URL을 브라우저로 오픈
+→ 태그 편집: 태그 추가/제거 (count 자동 갱신)
+→ 전체 삭제: 그룹 + media_items + group_tags 삭제, 태그 count 갱신
 ```
 
-### ⑦ OneDrive 연결 흐름
+### ⑦ 태그 삭제
 ```
-설정 → "Microsoft 계정으로 연결" 탭
-→ Microsoft 로그인 팝업 오픈
-→ 계정 로그인 + 파일 접근 권한 동의
-→ 연결됨 상태로 전환 (계정명 표시)
-→ 이후 메타데이터 변경 시 자동 동기화 시작
-```
-
-### ⑧ OneDrive 계정 변경 흐름
-```
-설정 → "연결 해제" 탭
-→ 확인 다이얼로그 (로컬 데이터 유지 안내)
-→ 미연결 상태로 전환
-→ "Microsoft 계정으로 연결" 버튼 다시 표시
-→ 다른 계정으로 재연결 가능
+태그 전체 목록 열기 → 삭제할 태그 행의 🗑️ 버튼 탭
+→ count=0이면 즉시 삭제
+→ count>0이면 확인 다이얼로그 → 확인 시 삭제
+→ 연결된 모든 group_tags 레코드 삭제 (항목은 유지)
 ```
 
-### ⑨ OneDrive 자동 동기화
+### ⑧ 백업/복원
 ```
-메타데이터 변경 발생 (다운로드/태그 수정/삭제 등)
-→ 백그라운드에서 자동으로 OneDrive /MediaManager/metadata.json 업데이트
-```
+[내보내기]
+설정 → "백업 내보내기" → JSON 파일 생성 → 공유 다이얼로그
 
-### ⑩ 기기 이전
-```
-[OneDrive 연결된 경우]
-새 폰 설치 → OneDrive 로그인 → metadata.json 자동 복원
-
-[수동 백업]
-설정 → 백업 내보내기 → JSON 파일 생성
-→ 카카오톡/이메일/구글드라이브 등으로 전송
-→ 새 폰에서 설정 → 백업 가져오기
+[가져오기]
+설정 → "백업 가져오기" → JSON 파일 선택
+→ 기존 로컬 데이터 삭제 후 복원
+→ 관리 목록 자동 갱신
 ```
 
 ---
 
-## 9. OneDrive 연동 정책
-
-- OneDrive는 **선택 사항** — 미연결 시 모든 핵심 기능 정상 동작
-- 연결 시: 메타데이터 자동 실시간 동기화
-- 미연결 시: 로컬 SQLite만 사용, 수동 백업 가능
-- Microsoft Azure 앱 등록 필요 (무료, 1회)
-
----
-
-## 10. 출처(플랫폼) 자동 감지 규칙
+## 11. 출처(플랫폼) 자동 감지 규칙
 
 | URL 패턴 | 플랫폼 |
 |---|---|
@@ -346,6 +358,5 @@ SNS 앱에서 공유 → 우리 앱 선택
 | `x.com` / `twitter.com` | x |
 | `tiktok.com` | tiktok |
 | `youtube.com` / `youtu.be` | youtube |
-| `facebook.com` | facebook |
-| 카메라 촬영 | camera |
+| 갤러리 등록 | camera |
 | 그 외 | other |
